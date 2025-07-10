@@ -1,0 +1,194 @@
+<div class="bg-gradient-to-b from-gray-50 to-white min-h-screen p-4 md:p-6" dir="rtl">
+  <div class="max-w-5xl mx-auto" style="background-color: rgb(208, 125, 41);">
+    <!-- Header -->
+    <div class="mb-6">
+      <button pButton icon="pi pi-arrow-right" label="العودة إلى قائمة الطلاب" routerLink="/students"
+        class="p-button-text text-emerald-600 hover:bg-emerald-50 transition-all duration-200"></button>
+
+      <div class="bg-green-500 rounded-xl shadow-md p-6 mt-4">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
+          <i class="pi" [ngClass]="isEditMode ? 'pi-user-edit text-amber-600' : 'pi-user-plus text-emerald-600'"></i>
+          {{ isEditMode ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد' }}
+        </h1>
+        <p class="text-gray-600 mt-1">{{ isEditMode ? 'تعديل بيانات الطالب الحالي' : 'إدخال بيانات الطالب الجديد في
+          النظام}}</p>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Basic Information Card -->
+      <div
+        class="bg-green-100 rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300 border border-gray-100">
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+          <div class="p-3 rounded-full bg-emerald-50 text-emerald-600">
+            <i class="pi pi-user text-lg"></i>
+          </div>
+          <h2 class="text-xl font-semibold text-gray-800">المعلومات الأساسية</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Student ID -->
+          <div class="form-group" *ngIf="isEditMode">
+            <label for="id" class="block text-sm font-medium text-gray-700 mb-2">رقم الطالب</label>
+            <input pInputText id="id" formControlName="id" class="w-full" [readonly]="true" />
+          </div>
+
+          <!-- Student Name -->
+          <div class="form-group">
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+              اسم الطالب <span class="text-red-500">*</span>
+            </label>
+            <div class="p-inputgroup">
+              <span class="p-inputgroup-addon bg-gray-100">
+                <i class="pi pi-user text-gray-500"></i>
+              </span>
+              <input pInputText id="name" formControlName="name" placeholder="أدخل الاسم الكامل" class="w-full"
+                [ngClass]="{'p-invalid': (submitted || f['name'].touched) && f['name'].errors}" />
+            </div>
+            <small *ngIf="submitted && f['name'].errors?.['required']" class="p-error text-xs mt-1 block">
+              <i class="pi pi-exclamation-circle mr-1"></i> اسم الطالب مطلوب
+            </small>
+          </div>
+
+          <!-- Gender Field -->
+          <div class="form-group">
+            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">
+              الجنس <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown id="gender" formControlName="gender" [options]="[
+                  {label: 'ذكر', value: 'Male'},
+                  {label: 'أنثى', value: 'Female'}
+                ]" optionLabel="label" optionValue="value" placeholder="اختر الجنس" [style]="{width: '100%'}"
+              [ngClass]="{'p-invalid': submitted && f['gender'].errors}">
+            </p-dropdown>
+            <small *ngIf="submitted && f['gender'].errors?.['required']" class="p-error text-xs mt-1 block">
+              <i class="pi pi-exclamation-circle mr-1"></i> الجنس مطلوب
+            </small>
+          </div>
+
+          <!-- Birth Date -->
+          <div class="form-group">
+            <label for="birthDate" class="block text-sm font-medium text-gray-700 mb-2">
+              تاريخ الميلاد <span class="text-red-500">*</span>
+            </label>
+            <p-calendar formControlName="birthDate" [showIcon]="true" dateFormat="dd/mm/yy" inputId="birthDate"
+              [style]="{ width: '100%' }" placeholder="اختر التاريخ"
+              [ngClass]="{'p-invalid': submitted && f['birthDate'].errors}"></p-calendar>
+            <small *ngIf="submitted && f['birthDate'].errors?.['required']" class="p-error text-xs mt-1 block">
+              <i class="pi pi-exclamation-circle mr-1"></i> تاريخ الميلاد مطلوب
+            </small>
+          </div>
+
+
+          <!-- Corrected Registration Date Label -->
+          <div class="form-group">
+            <label for="registrationDate" class="block text-sm font-medium text-gray-700 mb-2">
+              تاريخ التسجيل <span class="text-red-500">*</span>
+            </label>
+            <p-calendar formControlName="registrationDate" [showIcon]="true" dateFormat="dd/mm/yy"
+              inputId="registrationDate" [style]="{ width: '100%' }" placeholder="اختر التاريخ"
+              [ngClass]="{'p-invalid': submitted && f['registrationDate'].errors}">
+            </p-calendar>
+            <small *ngIf="submitted && f['registrationDate'].errors?.['required']" class="p-error text-xs mt-1 block">
+              <i class="pi pi-exclamation-circle mr-1"></i> تاريخ التسجيل مطلوب
+            </small>
+          </div>
+
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+              رقم الهاتف <span class="text-red-500">*</span>
+            </label>
+            <div class="p-inputgroup">
+              <span class="p-inputgroup-addon bg-gray-100">
+                <i class="pi pi-phone text-gray-500"></i>
+              </span>
+              <p-inputMask id="phone" formControlName="phone" mask="9999999999" placeholder="05xxxxxxxx"
+                [style]="{ width: '100%' }" [ngClass]="{'p-invalid': submitted && f['phone'].errors}">
+              </p-inputMask>
+            </div>
+            <small *ngIf="submitted && f['phone'].errors?.['required']" class="p-error text-xs mt-1 block">
+              <i class="pi pi-exclamation-circle mr-1"></i> رقم الهاتف مطلوب
+            </small>
+          </div>
+
+          <!-- Group -->
+          <div class="form-group">
+            <label for="groupID" class="block text-sm font-medium text-gray-700 mb-2">
+              المجموعة <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown id="groupID" formControlName="groupID" [options]="groupOptions" optionLabel="label"
+              optionValue="value" placeholder="اختر المجموعة" [style]="{width: '100%'}"
+              [ngClass]="{'p-invalid': submitted && f['groupID'].errors}">
+            </p-dropdown>
+            <small *ngIf="submitted && f['groupID'].errors?.['required']" class="p-error text-xs mt-1 block">
+              <i class="pi pi-exclamation-circle mr-1"></i> المجموعة مطلوبة
+            </small>
+          </div>
+
+          <!-- Address -->
+          <div class="form-group md:col-span-2">
+            <label for="address" class="block text-sm font-medium text-gray-700 mb-2">العنوان</label>
+            <div class="p-inputgroup">
+              <span class="p-inputgroup-addon bg-gray-100 self-start pt-3">
+                <i class="pi pi-map-marker text-gray-500"></i>
+              </span>
+              <textarea pInputTextarea id="address" formControlName="address" rows="3"
+                placeholder="أدخل العنوان بالتفصيل" class="w-full"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- Form Actions -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-100">
+        <button pButton type="button" label="إلغاء" icon="pi pi-times"
+          class="p-button-outlined p-button-secondary p-button-sm"
+          (click)="onCancel()">
+         
+        </button>
+      
+        <button pButton type="button" [label]="isEditMode ? 'حفظ التغييرات' : 'إضافة الطالب'" 
+          icon="pi pi-check"
+          class="p-button-sm" 
+          [ngClass]="{'p-button-success': !isEditMode, 'p-button-info': isEditMode}"
+          (click)="onSubmit()">
+        </button>
+      </div>
+    </form>
+
+    <!-- Success Dialog -->
+    <p-dialog [(visible)]="showSuccessDialog" [modal]="true" [closable]="false" [style]="{width: '450px'}"
+      styleClass="p-dialog-custom">
+      <ng-template pTemplate="header">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-check-circle text-emerald-600 text-2xl"></i>
+          <span class="font-bold text-lg">{{ isEditMode ? 'تم تحديث البيانات' : 'تم إضافة الطالب' }}</span>
+        </div>
+      </ng-template>
+      <div class="text-center py-4">
+        <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+          <i class="pi pi-check text-emerald-600 text-3xl"></i>
+        </div>
+        <p class="text-gray-700 mb-2">{{ isEditMode ? 'تم تحديث بيانات الطالب بنجاح' : 'تم إضافة الطالب الجديد بنجاح' }}
+        </p>
+        <p class="text-gray-500 text-sm">{{ isEditMode ? 'يمكنك الآن العودة إلى صفحة تفاصيل الطالب أو قائمة الطلاب' :
+          'يمكنك الآن إضافة طالب آخر أو العودة إلى قائمة الطلاب' }}</p>
+      </div>
+      <ng-template pTemplate="footer">
+        <div class="flex justify-center gap-2">
+          <button pButton type="button" label="العودة إلى القائمة" icon="pi pi-list"
+            class="p-button-outlined p-button-sm"></button>
+          <button *ngIf="isEditMode" pButton type="button" label="عرض بيانات الطالب" icon="pi pi-user"
+            class="p-button-success p-button-sm"></button>
+          <button *ngIf="!isEditMode" pButton type="button" label="إضافة طالب آخر" icon="pi pi-plus"
+            class="p-button-success p-button-sm" (click)="addAnotherStudent()"></button>
+        </div>
+      </ng-template>
+    </p-dialog>
+  </div>
+</div>

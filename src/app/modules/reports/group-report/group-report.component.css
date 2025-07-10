@@ -1,0 +1,73 @@
+.report-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media print {
+    .report-container {
+      box-shadow: none;
+      padding: 0;
+    }
+    
+    button {
+      display: none !important;
+    }
+  }
+  
+  /* Progress Bar Colors */
+  .bg-green-500 {
+    background-color: #10b981;
+  }
+  
+  .bg-blue-500 {
+    background-color: #3b82f6;
+  }
+  
+  .bg-amber-500 {
+    background-color: #f59e0b;
+  }
+  
+  .bg-red-500 {
+    background-color: #ef4444;
+  }
+  
+  /* Status Backgrounds */
+  .bg-green-50 {
+    background-color: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+  
+  .bg-blue-50 {
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+  }
+  
+  .bg-amber-50 {
+    background-color: #fffbeb;
+    border-color: #fde68a;
+  }
+  
+  .text-green-800 {
+    color: #065f46;
+  }
+  
+  .text-blue-800 {
+    color: #1e40af;
+  }
+  
+  .text-amber-800 {
+    color: #92400e;
+  }
+  
+  .bg-green-200 {
+    background-color: #a7f3d0;
+  }
+  
+  .bg-blue-200 {
+    background-color: #bfdbfe;
+  }
+  
+  .bg-amber-200 {
+    background-color: #fde68a;
+  }

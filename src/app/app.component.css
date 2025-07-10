@@ -1,0 +1,11 @@
+/* Import statements should come first */
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.css";
+@import "primeicons/primeicons.css";
+@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap");
+
+/* TailwindCSS and custom styles */
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+

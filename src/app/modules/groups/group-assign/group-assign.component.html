@@ -1,0 +1,734 @@
+<!-- Group Details Component Template -->
+<div class="p-6 bg-gray-50 min-h-screen rtl" dir="rtl">
+  <!-- Header Banner -->
+  <div class="mb-6 bg-gradient-to-l from-teal-600 to-teal-800 rounded-xl shadow-lg overflow-hidden">
+    <div class="flex flex-col md:flex-row md:items-center justify-between p-6">
+      <!-- Group Info -->
+      <div class="flex items-center mb-4 md:mb-0">
+        <!-- <div class="bg-white p-3 rounded-full w-16 h-16 flex items-center justify-center mr-4 shadow-md">
+          <img src="assets/quran-icon.svg" alt="مركز القرآن" class="h-10">
+        </div> -->
+        <div>
+          <h1 class="text-3xl font-bold text-white">{{group?.groupName}}</h1>
+          <p class="text-teal-100">{{group?.description}}</p>
+        </div>
+      </div>
+
+      <!-- Teacher Info Card -->
+      <div class="flex items-center bg-white/10 backdrop-blur-sm p-3 rounded-lg">
+        <img [src]="'https://ui-avatars.com/api/?name=' + group?.teacher + '&background=134e4a&color=fff&size=48'"
+          class="w-12 h-12 rounded-full mr-3" alt="صورة المعلم">
+        <div>
+          <span class="text-white/80 text-sm">المشرف</span>
+          <h3 class="text-white font-bold">{{group?.teacher}}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Overview Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-1 px-1 pb-1">
+      <div
+        class="bg-teal-700/50 backdrop-blur-sm p-4 rounded-lg text-white hover:bg-teal-700/70 transition cursor-pointer group">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-teal-100 group-hover:text-white transition">إجمالي الطلاب</p>
+            <h3 class="text-2xl font-bold">{{group?.maxStudentNumber || 24}}</h3>
+          </div>
+          <div class="w-10 h-10 bg-teal-800/50 rounded-full flex items-center justify-center">
+            <i class="pi pi-users text-teal-100 group-hover:text-white transition"></i>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-teal-700/50 backdrop-blur-sm p-4 rounded-lg text-white hover:bg-teal-700/70 transition cursor-pointer group">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-teal-100 group-hover:text-white transition">نسبة الحضور</p>
+            <!-- <h3 class="text-2xl font-bold">{{group?.Stutass?.attendancePercentage || 85}}%</h3> -->
+          </div>
+          <div class="w-10 h-10 bg-teal-800/50 rounded-full flex items-center justify-center">
+            <i class="pi pi-calendar text-teal-100 group-hover:text-white transition"></i>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-teal-700/50 backdrop-blur-sm p-4 rounded-lg text-white hover:bg-teal-700/70 transition cursor-pointer group">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-teal-100 group-hover:text-white transition">متوسط الحفظ</p>
+            <!-- <h3 class="text-2xl font-bold">{{group?.Stutass?.memorizationAvg || 78}}</h3> -->
+          </div>
+          <div class="w-10 h-10 bg-teal-800/50 rounded-full flex items-center justify-center">
+            <i class="pi pi-book text-teal-100 group-hover:text-white transition"></i>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-teal-700/50 backdrop-blur-sm p-4 rounded-lg text-white hover:bg-teal-700/70 transition cursor-pointer group">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-teal-100 group-hover:text-white transition">متوسط التجويد</p>
+            <!-- <h3 class="text-2xl font-bold">{{group.stats?.recitationAvg || 82}}</h3> -->
+          </div>
+          <div class="w-10 h-10 bg-teal-800/50 rounded-full flex items-center justify-center">
+            <i class="pi pi-volume-up text-teal-100 group-hover:text-white transition"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Content -->
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+    <!-- Main Navigation Tabs -->
+    <p-tabView styleClass="custom-tabs group-tabs">
+
+
+
+
+      <!-- Students Tab Panel -->
+      <p-tabPanel header="الطلاب" leftIcon="pi pi-users">
+        <div class="p-4">
+          <!-- Search and Filter Section -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+            <div class="flex items-center gap-2 w-full md:w-auto">
+              <span class="p-input-icon-left w-full md:w-64">
+                <i class="pi pi-search"></i>
+                <input type="text" pInputText placeholder="بحث عن طالب..." class="w-full"
+                  [(ngModel)]="studentSearchTerm" (input)="filterStudents()" [ngModelOptions]="{standalone: true}">
+              </span>
+              <p-dropdown [options]="genderOptions" [(ngModel)]="selectedGender" optionLabel="name" 
+                placeholder="النوع" styleClass="w-28" (onChange)="filterStudents()"></p-dropdown>
+            </div>
+      
+            <div class="flex gap-2">
+              <p-dropdown [options]="statusOptions" [(ngModel)]="selectedStatus" optionLabel="name"
+                placeholder="الحالة" styleClass="w-28" (onChange)="filterStudents()"></p-dropdown>
+              <button pButton icon="pi pi-plus" label="إضافة طالب" class="p-button-success"
+                (click)="showAddStudentDialog()">
+                <i class="pi pi-user-plus ml-2"></i>
+              </button>
+              <button pButton icon="pi pi-file-excel" label="تصدير" 
+                class="p-button-outlined p-button-help" (click)="exportToExcel()"
+                pTooltip="تصدير إلى اكسل" tooltipPosition="top"></button>
+            </div>
+          </div>
+      
+          <!-- Statistics Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm text-gray-500">إجمالي الطلاب</p>
+                  <h3 class="text-2xl font-bold">{{totalStudents}}</h3>
+                </div>
+                <i class="pi pi-users text-3xl text-blue-500"></i>
+              </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm text-gray-500">طلاب نشطين</p>
+                  <h3 class="text-2xl font-bold text-green-600">{{activeStudents}}</h3>
+                </div>
+                <i class="pi pi-check-circle text-3xl text-green-500"></i>
+              </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm text-gray-500">طلاب غير نشطين</p>
+                  <h3 class="text-2xl font-bold text-orange-600">{{inactiveStudents}}</h3>
+                </div>
+                <i class="pi pi-exclamation-circle text-3xl text-orange-500"></i>
+              </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm text-gray-500">متوسط الحضور</p>
+                  <h3 class="text-2xl font-bold text-teal-600">{{averageAttendance}}%</h3>
+                </div>
+                <i class="pi pi-chart-line text-3xl text-teal-500"></i>
+              </div>
+            </div>
+          </div>
+      
+          <!-- Loading Indicator -->
+          <div *ngIf="loading" class="text-center p-5">
+            <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
+            <p class="mt-3 text-gray-600">جاري تحميل بيانات الطلاب...</p>
+          </div>
+      
+          <!-- Students Table -->
+          <p-table *ngIf="filteredStudents.length > 0 && !loading" [value]="filteredStudents" [paginator]="true"
+            [rows]="10" [rowsPerPageOptions]="[5,10,20]" [globalFilterFields]="['name', 'studentID']" 
+            styleClass="p-datatable-sm p-datatable-striped" responsiveLayout="scroll" [rowHover]="true">
+            
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 180px; text-align: right;">معلومات الطالب</th>
+                <th style="width: 120px; text-align: center;">معلومات الاتصال</th>
+                <th style="width: 100px; text-align: center;">الحالة</th>
+                <th style="width: 120px; text-align: center;">التسجيل</th>
+                <th style="width: 120px; text-align: center;">الحفظ</th>
+                <th style="width: 100px; text-align: center;">إجراءات</th>
+              </tr>
+            </ng-template>
+      
+            <ng-template pTemplate="body" let-student>
+              <tr>
+                <!-- Student Info -->
+                <td>
+                  <div class="flex items-center gap-3">
+                    <img [src]="getStudentAvatar(student)" class="w-10 h-10 rounded-full" alt="صورة الطالب">
+                    <div>
+                      <div class="font-semibold">{{student.name}}</div>
+                      <div class="text-xs text-gray-500">
+                        <span class="font-medium">ID:</span> {{student.studentID || student.id}}
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        <span class="font-medium">العمر:</span> {{calculateAge(student.birthDate)}} سنة
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Contact Info -->
+                <td class="text-center">
+                  <div class="flex flex-col gap-1">
+                    <div class="text-sm">{{student.phone}}</div>
+                    <div class="text-xs text-gray-500 truncate" pTooltip="{{student.address}}" 
+                      tooltipPosition="top" [showDelay]="500">{{student.address || '--'}}</div>
+                  </div>
+                </td>
+                
+                <!-- Status -->
+                <td class="text-center">
+                  <p-tag [severity]="student.isActive ? 'success' : 'danger'" 
+                    [value]="student.isActive ? 'نشط' : 'غير نشط'"
+                    [icon]="student.isActive ? 'pi pi-check' : 'pi pi-times'"></p-tag>
+                  <div *ngIf="student.egazaCode" class="mt-1">
+                    <p-tag severity="info" [value]="student.egazaCode" icon="pi pi-id-card"></p-tag>
+                  </div>
+                </td>
+                
+                <!-- Registration -->
+                <td class="text-center">
+                  <div class="text-sm">{{student.registrationDate | date:'yyyy-MM-dd'}}</div>
+                  <div class="text-xs text-gray-500">
+                    منذ {{getDuration(student.registrationDate)}}
+                  </div>
+                </td>
+                
+                <!-- Memorization Progress -->
+                <td class="text-center">
+                  <div class="flex flex-col items-center">
+                    <p-progressBar [value]="student.memorizedPercentage || 0" 
+                      [showValue]="false" styleClass="h-2 mb-1 w-full"></p-progressBar>
+                    <span class="text-sm font-medium">
+                      {{student.memorizedParts || 0}} أجزاء
+                    </span>
+                  </div>
+                </td>
+                
+                <!-- Actions -->
+                <td>
+                  <div class="flex justify-center gap-1">
+                    <button pButton icon="pi pi-eye" pTooltip="عرض التفاصيل"
+                      class="p-button-rounded p-button-text p-button-sm p-button-info"
+                      (click)="viewStudentDetails(student)"></button>
+                    <button pButton icon="pi pi-user-edit" pTooltip="تعديل"
+                      class="p-button-rounded p-button-text p-button-sm"
+                      (click)="editStudent(student)"></button>
+                    <button pButton icon="pi pi-trash" pTooltip="حذف"
+                      class="p-button-rounded p-button-text p-button-sm p-button-danger"
+                      (click)="confirmDelete(student)"></button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+      
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6" class="text-center p-6">
+                  <div class="flex flex-col items-center text-gray-500">
+                    <i class="pi pi-users text-5xl mb-3"></i>
+                    <p class="text-lg">لا يوجد طلاب</p>
+                    <p class="text-sm mt-1">قم بإضافة طلاب جديدين باستخدام زر "إضافة طالب"</p>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      
+        <!-- Add/Edit Student Dialog -->
+        <p-dialog [(visible)]="showStudentForm" [style]="{width: '90%', maxWidth: '700px'}" [modal]="true" 
+          [header]="isEditMode ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد'" [draggable]="false" [resizable]="false">
+          
+          <form [formGroup]="studentForm" class="p-fluid grid">
+            <!-- Personal Info -->
+            <div class="field col-12 md:col-6">
+              <label for="name">اسم الطالب *</label>
+              <input pInputText id="name" formControlName="name" placeholder="الاسم الكامل">
+              <small *ngIf="studentForm.get('name')?.invalid && studentForm.get('name')?.touched" class="p-error">
+                اسم الطالب مطلوب
+              </small>
+            </div>
+      
+            <div class="field col-12 md:col-6">
+              <label for="birthDate">تاريخ الميلاد *</label>
+              <p-calendar id="birthDate" formControlName="birthDate" [showIcon]="true" dateFormat="yy-mm-dd"
+                [maxDate]="maxBirthDate" [yearRange]="yearRange" [monthNavigator]="true" [yearNavigator]="true">
+              </p-calendar>
+              <small *ngIf="studentForm.get('birthDate')?.invalid && studentForm.get('birthDate')?.touched" class="p-error">
+                تاريخ الميلاد مطلوب
+              </small>
+            </div>
+      
+            <!-- Contact Info -->
+            <div class="field col-12 md:col-6">
+              <label for="phone">رقم الهاتف *</label>
+              <p-inputMask id="phone" formControlName="phone" mask="9999999999" placeholder="05XXXXXXXX"></p-inputMask>
+              <small *ngIf="studentForm.get('phone')?.invalid && studentForm.get('phone')?.touched" class="p-error">
+                رقم هاتف صحيح مطلوب (يبدأ بـ 05 ويتكون من 10 أرقام)
+              </small>
+            </div>
+      
+            <div class="field col-12 md:col-6">
+              <label for="gender">النوع *</label>
+              <p-dropdown id="gender" formControlName="gender" [options]="genderOptions" optionLabel="name"></p-dropdown>
+            </div>
+      
+            <div class="field col-12">
+              <label for="address">العنوان</label>
+              <textarea pInputTextarea id="address" formControlName="address" rows="2"></textarea>
+            </div>
+      
+            <!-- Group and Status -->
+            <div class="field col-12 md:col-6">
+              <label for="groupID">المجموعة *</label>
+              <p-dropdown id="groupID" formControlName="groupID" [options]="groups" optionLabel="name"
+                [filter]="true" filterBy="name" [showClear]="true"></p-dropdown>
+            </div>
+      
+            <div class="field col-12 md:col-6">
+              <label for="isActive">الحالة</label>
+              <p-inputSwitch id="isActive" formControlName="isActive"></p-inputSwitch>
+            </div>
+      
+            <!-- Egaza Info -->
+            <div class="field col-12">
+              <label for="egazaCode">كود الإجازة (إن وجد)</label>
+              <input pInputText id="egazaCode" formControlName="egazaCode" placeholder="كود الإجازة">
+            </div>
+          </form>
+      
+          <ng-template pTemplate="footer">
+            <div class="flex justify-between">
+              <button pButton label="حذف" icon="pi pi-trash" class="p-button-danger" 
+                *ngIf="isEditMode && selectedStudent" (click)="confirmDelete(selectedStudent)"></button>
+              <div class="flex gap-2">
+                <button pButton label="إلغاء" icon="pi pi-times" class="p-button-text" (click)="closeForm()"></button>
+                <button pButton label="حفظ" icon="pi pi-check" class="p-button-primary" 
+                  [disabled]="studentForm.invalid" (click)="saveStudent()"></button>
+              </div>
+            </div>
+          </ng-template>
+        </p-dialog>
+      
+        <!-- Student Details Dialog -->
+        <p-dialog [(visible)]="showStudentDetails" [style]="{width: '90%', maxWidth: '800px'}" [modal]="true" 
+          header="تفاصيل الطالب" [draggable]="false" [resizable]="false" *ngIf="selectedStudent">
+          
+          <div class="grid">
+            <!-- Student Profile -->
+            <div class="col-12 md:col-4 border-right p-4">
+              <div class="flex flex-col items-center">
+                <img [src]="getStudentAvatar(selectedStudent)" class="w-32 h-32 rounded-full mb-4">
+                <h3 class="text-xl font-bold">{{selectedStudent.name}}</h3>
+                <p class="text-gray-600">ID: {{selectedStudent.studentID || selectedStudent.studentID}}</p>
+                
+                <div class="w-full mt-4">
+                  <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">العمر:</span>
+                    <span>{{selectedStudent.birthDate ? calculateAge(selectedStudent.birthDate) : 'غير متوفر'}} سنة</span>
+                  </div>
+                  <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">النوع:</span>
+                    <span>{{selectedStudent.gender === 'Male' ? 'ذكر' : 'أنثى'}}</span>
+                  </div>
+                  <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">الحالة:</span>
+                    <p-tag [severity]="selectedStudent.isActive ? 'success' : 'danger'" 
+                      [value]="selectedStudent.isActive ? 'نشط' : 'غير نشط'"></p-tag>
+                  </div>
+                  <div class="flex justify-between py-2 border-b" *ngIf="selectedStudent.egazaCode">
+                    <span class="font-medium">كود الإجازة:</span>
+                    <p-tag severity="info">{{selectedStudent.egazaCode}}</p-tag>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Student Details -->
+            <div class="col-12 md:col-8 p-4">
+              <p-tabView>
+                <p-tabPanel header="المعلومات الأساسية">
+                  <div class="grid">
+                    <div class="col-12 md:col-6">
+                      <h4 class="font-bold mb-2">معلومات الاتصال</h4>
+                      <p><i class="pi pi-phone mr-2"></i> {{selectedStudent.phoneNumber || 'غير متوفر'}}</p>
+                      <p><i class="pi pi-map-marker mr-2"></i> {{selectedStudent.address || 'غير متوفر'}}</p>
+                    </div>
+                    <div class="col-12 md:col-6">
+                      <h4 class="font-bold mb-2">معلومات التسجيل</h4>
+                      <p><i class="pi pi-calendar mr-2"></i> {{selectedStudent.registrationDate | date:'yyyy-MM-dd'}}</p>
+                      <p><i class="pi pi-clock mr-2"></i> منذ {{getDuration(selectedStudent.registrationDate)}}</p>
+                    </div>
+                    <div class="col-12 mt-4">
+                      <h4 class="font-bold mb-2">المجموعة</h4>
+                      <p-tag *ngIf="selectedStudent.group" severity="info" icon="pi pi-users">
+                        {{selectedStudent.group.groupName}}
+                      </p-tag>
+                      <p *ngIf="!selectedStudent.group" class="text-gray-500">لا ينتمي لأي مجموعة</p>
+                    </div>
+                  </div>
+                </p-tabPanel>
+                
+                <p-tabPanel header="التقدم الدراسي">
+                  <div class="grid">
+                    <div class="col-12 md:col-6">
+                      <h4 class="font-bold mb-2">حفظ القرآن</h4>
+                      <div class="mb-4">
+                        <p class="flex justify-between mb-1">
+                          <span>الأجزاء المحفوظة:</span>
+                          <span class="font-bold">{{selectedStudent || 0}}/30</span>
+                        </p>
+                        <p-progressBar [value]="(selectedStudent.attendanceDays)/30*100" 
+                          [showValue]="false"></p-progressBar>
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-6">
+                      <h4 class="font-bold mb-2">الحضور</h4>
+                      <div class="mb-4">
+                        <p class="flex justify-between mb-1">
+                          <span>معدل الحضور:</span>
+                          <span class="font-bold">{{selectedStudent.attendanceDays || 0}}%</span>
+                        </p>
+                        <p-progressBar [value]="selectedStudent.attendanceDays || 0" 
+                          [showValue]="false"></p-progressBar>
+                      </div>
+                    </div>
+                  </div>
+                </p-tabPanel>
+                
+                <p-tabPanel header="السجل الأكاديمي">
+                  <p-table [value]="selectedStudent.exams || []" styleClass="p-datatable-sm" [paginator]="true" [rows]="5">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th>التاريخ</th>
+                        <th>نوع الاختبار</th>
+                        <th>النتيجة</th>
+                        <th>التقييم</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-exam>
+                      <tr>
+                        <td>{{exam.date | date:'yyyy-MM-dd'}}</td>
+                        <td>{{exam.type}}</td>
+                        <td>{{exam.score}}/100</td>
+                        <td>
+                          <p-rating [ngModel]="exam.rating" readonly="true" cancel="false" stars="5"></p-rating>
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="4" class="text-center p-4 text-gray-500">
+                          لا يوجد سجل اختبارات لهذا الطالب
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </p-tabPanel>
+              </p-tabView>
+            </div>
+          </div>
+      
+          <ng-template pTemplate="footer">
+            <div class="flex justify-between">
+              <button pButton label="طباعة البطاقة" icon="pi pi-print" class="p-button-help"></button>
+              <div class="flex gap-2">
+                <button pButton label="تعديل" icon="pi pi-pencil" class="p-button-primary" 
+                  (click)="editStudent(selectedStudent)"></button>
+                <button pButton label="إغلاق" icon="pi pi-times" class="p-button-text" 
+                  (click)="showStudentDetails = false"></button>
+              </div>
+            </div>
+          </ng-template>
+        </p-dialog>
+      </p-tabPanel>
+
+      <!-- --------------------------------------------------------------------------------------- -->
+
+
+
+      <!-- Quran Progress Tab -->
+      <p-tabPanel header="تقدم القراءة" leftIcon="pi pi-book">
+         <app-group-reading/>
+        </p-tabPanel>
+
+  
+
+
+      <!-- --------------------------------------------------------------------------------------- -->
+
+
+      <!-- Exams Tab -->
+      <p-tabPanel header="الاختبارات" leftIcon="pi pi-file-edit">
+        <div class="p-4">
+          <!-- Exam Summary Cards -->
+          <!-- <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm flex items-center">
+              <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                <i class="pi pi-file-edit text-blue-600 text-lg"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">إجمالي الاختبارات</p>
+                <h3 class="text-xl font-bold text-gray-800">{{examStats.average}}</h3>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm flex items-center">
+              <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                <i class="pi pi-chart-line text-green-600 text-lg"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">المتوسط العام</p>
+                <h3 class="text-xl font-bold text-gray-800">{{examStats.average || 82}}/100</h3>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm flex items-center">
+              <div class="bg-amber-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                <i class="pi pi-calendar text-amber-600 text-lg"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">الاختبار القادم</p>
+                <h3 class="text-xl font-bold text-gray-800">{{examStats.nextExamDate || '2025/05/15'}}</h3>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm flex items-center">
+              <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                <i class="pi pi-users text-purple-600 text-lg"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">نسبة المشاركة</p>
+                <h3 class="text-xl font-bold text-gray-800">{{examStats.participationRate || 94}}%</h3>
+              </div>
+            </div>
+          </div> -->
+
+          <!-- Filter & Actions -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+            <div class="flex items-center">
+              <span class="p-input-icon-left w-full md:w-64">
+                <i class="pi pi-search"></i>
+                <input type="text" pInputText placeholder="بحث في الاختبارات..." class="w-full"
+                  [(ngModel)]="examSearchTerm" [ngModelOptions]="{standalone: true}">
+              </span>
+            </div>
+
+            <div class="flex gap-2">
+              <button pButton icon="pi pi-plus" label="إنشاء اختبار" class="p-button-success"
+                (click)="createNewExam()"></button>
+              <button pButton icon="pi pi-download" label="تصدير النتائج" class="p-button-outlined"></button>
+            </div>
+          </div>
+          <!-- Exams Table -->
+          <p-table [value]="exams" [paginator]="true" [rows]="5" styleClass="p-datatable-sm" responsiveLayout="scroll"
+            [rowHover]="true" [globalFilterFields]="['examName', 'description']">
+
+            <ng-template pTemplate="header">
+              <tr class="bg-gray-100 text-right">
+                <th class="px-4 py-3">اسم الاختبار</th>
+                <th class="px-4 py-3">التاريخ</th>
+                <th class="px-4 py-3">الوصف</th>
+                <th class="px-4 py-3">درجة النجاح</th>
+                <th class="px-4 py-3">الدرجة الكلية</th>
+                <th class="px-4 py-3">إجراءات</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-exam>
+              <tr class="text-right">
+                <td class="px-4 py-2">
+                  <div class="flex items-center gap-2 justify-end">
+                    <i class="pi pi-file-edit text-primary"></i>
+                    <span class="font-semibold text-gray-800">{{ exam.examName }}</span>
+                  </div>
+                </td>
+                <td class="px-4 py-2">{{ exam.examDate | date: 'yyyy/MM/dd' }}</td>
+                <td class="px-4 py-2">{{ exam.description || 'لا يوجد وصف' }}</td>
+                <td class="px-4 py-2">{{ exam.passDegre || 'غير محدد' }}</td>
+                <td class="px-4 py-2">{{ exam.totalMarks || 'غير محدد' }}</td>
+                <td class="px-4 py-2">
+                  <div class="flex justify-end gap-2">
+                    <button pButton pRipple icon="pi pi-eye" pTooltip="عرض التفاصيل"
+                      class="p-button-rounded p-button-text p-button-sm text-blue-600"
+                      (click)="viewExamDetails(exam)"></button>
+                    <button pButton pRipple icon="pi pi-pencil" pTooltip="تعديل الاختبار"
+                      class="p-button-rounded p-button-text p-button-sm text-green-600"
+                      (click)="editExam(exam)"></button>
+                    <p-menu #examMenu [popup]="true" [model]="studentMenuItems"></p-menu>
+                    <button pButton pRipple icon="pi pi-ellipsis-v" pTooltip="المزيد من الخيارات"
+                      class="p-button-rounded p-button-text p-button-sm text-gray-600"
+                      (click)="examMenu.toggle($event)"></button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6" class="text-center p-6">
+                  <div class="flex flex-col items-center">
+                    <i class="pi pi-file-edit text-6xl text-gray-300 mb-4"></i>
+                    <p>لم يتم العثور على اختبارات</p>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+
+          </p-table>
+
+
+          <!-- Exam Result Modal -->
+          <p-dialog header="نتائج الاختبار" [(visible)]="examResultDialogVisible" [style]="{width: '80vw'}"
+            [modal]="true" styleClass="p-fluid">
+            <div *ngIf="selectedExam">
+              <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                <div class="flex flex-col md:flex-row justify-between md:items-center">
+                  <div>
+                    <h3 class="text-xl font-bold text-teal-700">{{selectedExam.Name}}</h3>
+                    <p class="text-gray-600">{{selectedExam.ExamDate | date: 'yyyy/MM/dd'}} | {{selectedExam.title}}</p>
+                  </div>
+                  <div class="mt-4 md:mt-0">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
+                      متوسط النتائج: {{selectedExam.averageScore}}/100
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <p-table [value]="examResults" styleClass="p-datatable-sm" [paginator]="true" [rows]="10"
+                [rowHover]="true">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>اسم الطالب</th>
+                    <th>الدرجة</th>
+                    <th>التقييم</th>
+                    <th>الملاحظات</th>
+                    <th>إجراءات</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-result>
+                  <tr>
+                    <td>
+                      <div class="flex items-center">
+                        <img
+                          [src]="'https://ui-avatars.com/api/?name=' + result.studentName + '&background=059669&color=fff&size=32'"
+                          class="w-8 h-8 rounded-full mr-2" alt="صورة الطالب">
+                        <span>{{result.studentName}}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="flex items-center">
+                        <span [class]="getScoreClass(result.score)">{{result.score}}/100</span>
+                        <div class="w-24 mr-2 bg-gray-200 rounded-full h-2.5">
+                          <div [class]="getScoreProgressClass(result.score)" [style.width.%]="result.score"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <!-- <p-rating [ngModel]="Math.ceil(result.score)" readonly="true" cancel="false"
+                        stars="5"></p-rating> -->
+                    </td>
+                    <td>
+                      <span *ngIf="result.notes" class="line-clamp-1">{{result.notes}}</span>
+                      <span *ngIf="!result.notes" class="text-gray-400">-</span>
+                    </td>
+                    <td>
+                      <div class="flex gap-1">
+                        <button pButton pRipple icon="pi pi-pencil" pTooltip="تعديل النتيجة"
+                          class="p-button-rounded p-button-text p-button-sm" (click)="editExamResult(result)"></button>
+                        <button pButton pRipple icon="pi pi-comments" pTooltip="إضافة ملاحظات"
+                          class="p-button-rounded p-button-text p-button-sm"
+                          (click)="addExamResultNotes(result)"></button>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+            <ng-template pTemplate="footer">
+              <button pButton pRipple label="إغلاق" icon="pi pi-times" class="p-button-text"
+                (click)="examResultDialogVisible = false"></button>
+              <button pButton pRipple label="تصدير النتائج" icon="pi pi-download" class="p-button-outlined"></button>
+            </ng-template>
+          </p-dialog>
+
+          <!-- New Exam Dialog -->
+          <p-dialog header="إنشاء اختبار جديد" [(visible)]="newExamDialogVisible" [style]="{width: '50vw'}"
+            [modal]="true" styleClass="p-fluid">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="field">
+                <label for="examName" class="font-medium">اسم الاختبار</label>
+                <input id="examName" type="text" pInputText [(ngModel)]="newExam.Name">
+              </div>
+              <div class="field">
+                <label for="examType" class="font-medium">نوع الاختبار</label>
+                <p-dropdown id="examType" [options]="examTypes" [(ngModel)]="newExam.title" optionLabel="label"
+                  optionValue="value" placeholder="اختر نوع الاختبار"></p-dropdown>
+              </div>
+              <div class="field">
+                <label for="examDate" class="font-medium">تاريخ الاختبار</label>
+                <p-calendar id="examDate" [(ngModel)]="newExam.ExamDate" [showIcon]="true"></p-calendar>
+              </div>
+              <div class="field">
+                <label for="totalMarks" class="font-medium">الدرجة الكلية</label>
+                <p-inputNumber id="totalMarks" [(ngModel)]="newExam.totaldegree" [min]="1" [max]="100"></p-inputNumber>
+              </div>
+              <div class="field col-span-2">
+                <label for="examDesc" class="font-medium">وصف الاختبار</label>
+                <textarea id="examDesc" pInputTextarea [(ngModel)]="newExam.Description" rows="3"></textarea>
+              </div>
+              <div class="field col-span-2">
+                <label class="font-medium mb-2 block">المشاركون</label>
+                <div class="flex gap-2 items-center">
+                  <p-multiSelect [options]="students" defaultLabel="اختر الطلاب" optionLabel="name"
+                    [(ngModel)]="newExam.participants" styleClass="w-full"></p-multiSelect>
+                  <button pButton icon="pi pi-check-square" pTooltip="تحديد الكل" class="p-button-outlined p-button-sm"
+                    (click)="selectAllStudentsForExam()"></button>
+                </div>
+              </div>
+            </div>
+            <ng-template pTemplate="footer">
+              <button pButton pRipple label="إلغاء" icon="pi pi-times" class="p-button-text"
+                (click)="newExamDialogVisible = false"></button>
+              <button pButton pRipple label="حفظ" icon="pi pi-save" class="p-button-success"
+                (click)="saveNewExam()"></button>
+            </ng-template>
+          </p-dialog>
+        </div>
+      </p-tabPanel>
+
+      <!-- --------------------------------------------------------------------------------------- -->
+
+    </p-tabView>
+  </div>
+</div>

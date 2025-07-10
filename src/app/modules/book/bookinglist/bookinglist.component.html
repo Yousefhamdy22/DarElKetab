@@ -1,0 +1,995 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-6" dir="rtl">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Header Section -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 px-6 py-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-white mb-2">إدارة الحجوزات</h1>
+            <p class="text-blue-100">عرض وإدارة جميع الحجوزات في النظام</p>
+          </div>
+          <div class="flex items-center gap-3 mt-4 md:mt-0">
+            <button 
+              (click)="refreshData()"
+              class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 backdrop-blur-sm">
+              <i class="pi pi-refresh"></i>
+              <span>تحديث</span>
+            </button>
+            <button 
+              (click)="exportData()"
+              class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 backdrop-blur-sm">
+              <i class="pi pi-download"></i>
+              <span>تصدير</span>
+            </button>
+
+            <button 
+            (click)="handleNewBooking()"
+            class="bg-white text-blue-600 hover:bg-blue-50 px-6 py-2 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg"
+          >
+            <i class="pi pi-plus"></i>
+            <span>حجز جديد</span>
+          </button>
+
+            
+          </div>
+        </div>
+      </div>
+      
+      <!-- Statistics Cards -->
+      <div class="p-6 bg-gray-50">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <i class="pi pi-check-circle text-xl text-green-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">مؤكد</p>
+                <p class="text-2xl font-bold text-gray-900">{{ confirmedBookings }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                <i class="pi pi-clock text-xl text-yellow-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">في الانتظار</p>
+                <p class="text-2xl font-bold text-gray-900">{{ pendingBookings }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <i class="pi pi-check text-xl text-blue-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">مكتمل</p>
+                <p class="text-2xl font-bold text-gray-900">{{ totalBookings }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                <i class="pi pi-times-circle text-xl text-red-600"></i>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">ملغي</p>
+                <p class="text-2xl font-bold text-gray-900">{{ cancelledBookings }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <i class="pi pi-filter text-white"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900">البحث والتصفية</h2>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Search -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">البحث السريع</label>
+          <div class="relative">
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm"
+              (input)="onSearch()"
+              placeholder="البحث بالطالب أو المادة أو المعلم..."
+              class="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+            <i class="pi pi-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">تصفية حسب الحالة</label>
+          <select 
+            [(ngModel)]="statusFilter"
+            (change)="onStatusFilterChange()"
+            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+            <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">ترتيب حسب</label>
+          <select 
+            [(ngModel)]="sortField"
+            (change)="onSortChange()"
+            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+            <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Counter -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+            <i class="pi pi-list text-blue-600"></i>
+          </div>
+          <span class="text-gray-700 font-medium">
+            النتائج: <span class="font-bold text-blue-600">{{ filteredBookings.length }}</span> من أصل {{ bookings.length }} حجز
+          </span>
+        </div>
+        <div class="text-sm text-gray-500">
+          الصفحة {{ currentPage }} من {{ totalPages }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookings Cards/Table -->
+
+
+   <div class="space-y-6">
+  <!-- Mobile Cards View -->
+  <div class="md:hidden space-y-4">
+    <div *ngFor="let booking of paginatedBookings" 
+         class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+      
+      <!-- Card Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white font-bold text-xl border border-white/30">
+              {{ getInitials(booking.student?.name || '')}}
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-lg">{{ booking.student?.name || ''}}</h3>
+              <p class="text-blue-100 text-sm">ID: {{ booking.id }}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span [ngClass]="getStatusConfig(booking.status).bgClass + ' ' + getStatusConfig(booking.status).textClass" 
+                  class="px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 shadow-lg backdrop-blur-sm">
+              <i [ngClass]="getStatusConfig(booking.status).icon" class="text-sm"></i>
+              {{ getStatusConfig(booking.status).label }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Content -->
+      <div class="p-6 space-y-5">
+        <!-- Group & Teacher -->
+        <div class="grid grid-cols-1 gap-4">
+          <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl border border-emerald-100">
+            <div class="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+              <i class="fas fa-users text-lg"></i>
+            </div>
+            <div class="flex-1">
+              <p class="font-bold text-gray-900 text-lg">{{ booking.group?.groupName || 'غير محدد' }}</p>
+              <p class="text-emerald-600 text-sm font-medium">وقت المجموعة: {{ booking.groupTime || 'غير محدد' }}</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-2xl border border-purple-100">
+            <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+              <i class="fas fa-chalkboard-teacher text-lg"></i>
+            </div>
+            <div class="flex-1">
+              <p class="font-bold text-gray-900 text-lg">{{ booking.teacher?.name || 'غير محدد' }}</p>
+              <p class="text-purple-600 text-sm font-medium">الوقت المختار: {{ booking.timeSlot || 'غير محدد' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border border-blue-100">
+          <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+            <i class="fas fa-calendar-alt text-lg"></i>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-gray-900 text-lg">{{ formatDate(booking.bookingDate.toString()) }}</p>
+            <p class="text-blue-600 text-sm font-medium flex items-center gap-2">
+              <i class="fas fa-clock"></i>
+              {{ booking.groupTime || booking.timeSlot || 'غير محدد' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border border-gray-200 p-5">
+          <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-money-bill-wave text-green-600"></i>
+            معلومات الدفع
+          </h4>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-700 font-medium">الرسوم:</span>
+              <span class="font-bold text-gray-900 text-lg">{{ formatCurrency(booking.fees) }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-700 font-medium">المدفوع:</span>
+              <span class="font-bold text-emerald-600 text-lg">{{ formatCurrency(booking.paidAmount) }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-700 font-medium">المتبقي:</span>
+              <span class="font-bold text-lg" 
+                    [class.text-red-600]="(booking.remainingAmount || 0) > 0" 
+                    [class.text-emerald-600]="(booking.remainingAmount || 0) === 0">
+                {{ formatCurrency(booking.remainingAmount) }}
+              </span>
+            </div>
+            <div class="pt-2">
+              <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-bold"
+                    [class.bg-emerald-100]="booking.isFullyPaid"
+                    [class.text-emerald-800]="booking.isFullyPaid"
+                    [class.bg-amber-100]="!booking.isFullyPaid"
+                    [class.text-amber-800]="!booking.isFullyPaid">
+                <i [class]="booking.isFullyPaid ? 'fas fa-check-circle mr-2' : 'fas fa-exclamation-triangle mr-2'"></i>
+                {{ booking.isFullyPaid ? 'مدفوع بالكامل' : 'دفع جزئي' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Update -->
+        <div class="space-y-3">
+          <label class="block text-sm font-bold text-gray-800">تحديث الحالة</label>
+          <select 
+            [(ngModel)]="booking.status"
+            (change)="onStatusChange(booking, booking.status)"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 font-medium">
+            <option value="Confirmed">مؤكد</option>
+            <option value="Pending">في الانتظار</option>
+            <option value="Cancelled">ملغي</option>
+            <option value="Completed">مكتمل</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3 pt-4">
+          <button 
+            (click)="onView(booking)"
+            class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <i class="fas fa-eye"></i>
+            <span>عرض</span>
+          </button>
+          <button 
+            (click)="onEdit(booking)"
+            class="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 px-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <i class="fas fa-edit"></i>
+            <span>تعديل</span>
+          </button>
+          <button 
+            (click)="onDelete(booking)"
+            class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+  <!-- Desktop Table View -->
+ 
+
+
+  <div class="space-y-4">
+    <!-- Mobile Cards View -->
+    <div class="md:hidden space-y-4">
+      <div *ngFor="let booking of paginatedBookings" 
+           class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+        
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-gray-100">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                {{ getInitials(booking.student?.name || '') }}
+              </div>
+              <div>
+                <h3 class="font-bold text-gray-900">{{ booking.student?.name ||'' }}</h3>
+                <p class="text-sm text-gray-600">ID: {{ booking.id }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span [ngClass]="getStatusConfig(booking.status).bgClass + ' ' + getStatusConfig(booking.status).textClass" 
+                    class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                <i [ngClass]="'pi ' + getStatusConfig(booking.status).icon + ' ' + getStatusConfig(booking.status).iconClass"></i>
+                {{ getStatusConfig(booking.status).label }}
+              </span>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Card Content -->
+        <div class="p-6 space-y-4">
+          <!-- Group & Teacher -->
+          <div class="grid grid-cols-1 gap-3">
+            <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+              <i class="pi pi-users text-green-600"></i>
+              <div>
+                <p class="font-semibold text-gray-900">{{ booking.group?.groupName || '' }}</p>
+                <p class="text-sm text-gray-600">وقت المجموعة: {{ booking.groupTime || '' }}</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
+              <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                {{ getInitials(booking.teacher?.name ||'') }}
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900">{{ booking.teacher?.name || '' }}</p>
+                <p class="text-sm text-gray-600">الوقت المختار: {{ booking.timeSlot || '' }}</p>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Date & Time -->
+          <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
+            <i class="pi pi-calendar text-blue-600"></i>
+            <div>
+              <p class="font-semibold text-gray-900">{{ formatDate(booking.bookingDate.toString()) }}</p>
+              <p class="text-sm text-gray-600 flex items-center gap-1">
+                <i class="pi pi-clock text-gray-400"></i>
+                {{ booking.groupTime || booking.timeSlot || '' }}
+              </p>
+            </div>
+          </div>
+  
+          <!-- Payment Info -->
+          <div class="p-3 bg-gray-50 rounded-xl">
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">الرسوم:</span>
+                <span class="font-semibold">{{ (booking.fees || 0) | currency:'EGP':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">المدفوع:</span>
+                <span class="font-semibold text-green-600">{{ (booking.paidAmount || 0) | currency:'EGP':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">المتبقي:</span>
+                <span class="font-semibold" 
+                      [class.text-red-600]="(booking.remainingAmount || 0) > 0" 
+                      [class.text-green-600]="(booking.remainingAmount || 0) === 0">
+                  {{ (booking.remainingAmount || 0) | currency:'EGP':'symbol':'1.0-0' }}
+                </span>
+              </div>
+            </div>
+          </div>
+  
+          <!-- Status Update -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700">تحديث الحالة</label>
+            <select 
+              [(ngModel)]="booking.status"
+              (change)="onStatusChange(booking, booking.status)"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="Confirmed">مؤكد</option>
+              <option value="Pending">في الانتظار</option>
+              <option value="Cancelled">ملغي</option>
+              <option value="Completed">مكتمل</option>
+            </select>
+          </div>
+  
+          <!-- Actions -->
+          <div class="flex gap-2 pt-2">
+            <button 
+              (click)="onView(booking)"
+              class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-xl font-medium transition-colors duration-300 flex items-center justify-center gap-2">
+              <i class="pi pi-eye"></i>
+              <span>عرض</span>
+            </button>
+            <button 
+              (click)="onEdit(booking)"
+              class="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-xl font-medium transition-colors duration-300 flex items-center justify-center gap-2">
+              <i class="pi pi-pencil"></i>
+              <span>تعديل</span>
+            </button>
+            <button 
+              (click)="onDelete(booking)"
+              class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl font-medium transition-colors duration-300 flex items-center justify-center">
+              <i class="pi pi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    
+  
+    <!-- Desktop Table View -->
+    <div class="hidden md:block bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-700">الطالب</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-700">المجموعة</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-700">المعلم</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-700">التاريخ والوقت</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-700">الرسوم</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-700">الحالة</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-700">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let booking of paginatedBookings; let i = index" 
+                class="hover:bg-gray-50 transition-colors duration-200"
+                [class.bg-blue-25]="i % 2 === 0">
+              
+            <!-- Student -->
+<td class="px-6 py-4">
+  <div class="flex items-center gap-3">
+    <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center text-white font-bold">
+      {{ getInitials(booking.student?.name || '') }}
+    </div>
+    <div>
+      <p class="font-semibold text-gray-900">{{ booking.student?.name || 'N/A' }}</p>
+      <p class="text-sm text-gray-600">ID: {{ booking.id }}</p>
+    </div>
+  </div>
+</td>
+
+<!-- Group -->
+<td class="px-6 py-4">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+      <i class="pi pi-users text-green-600"></i>
+    </div>
+    <div>
+      <p class="font-semibold text-gray-900">{{ booking.group?.groupName || 'N/A' }}</p>
+      <p class="text-sm text-gray-600">{{ booking.timeSlot || '' }}</p>
+    </div>
+  </div>
+</td>
+
+<!-- Teacher -->
+<td class="px-6 py-4">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+      {{ getInitials(booking.teacher?.name || '') }}
+    </div>
+    <div>
+      <p class="font-semibold text-gray-900">{{ booking.teacher?.name || 'N/A' }}</p>
+      <p class="text-sm text-gray-600">وقت المجموعة: {{ booking.groupTime || '' }}</p>
+    </div>
+  </div>
+</td>
+    
+              <!-- Date & Time -->
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-calendar text-blue-500"></i>
+                  <div>
+                    <p class="font-semibold text-gray-900">{{ formatDate(booking.bookingDate.toString()) }}</p>
+                    <p class="text-sm text-gray-600 flex items-center gap-1">
+                      <i class="pi pi-clock text-gray-400"></i>
+                      {{ booking.groupTime || booking.timeSlot || ''}}
+                    </p>
+                  </div>
+                </div>
+              </td>
+    
+              <!-- Fees -->
+              <td class="px-6 py-4">
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">الرسوم:</span>
+                    <span class="font-semibold text-gray-900">{{ (booking.fees || 0) | currency:'EGP':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">المدفوع:</span>
+                    <span class="font-semibold text-green-600">{{ (booking.paidAmount || 0) | currency:'EGP':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">المتبقي:</span>
+                    <span class="font-semibold" 
+                          [class.text-red-600]="(booking.remainingAmount || 0) > 0" 
+                          [class.text-green-600]="(booking.remainingAmount || 0) === 0">
+                      {{ (booking.remainingAmount || 0) | currency:'EGP':'symbol':'1.0-0' }}
+                    </span>
+                  </div>
+                  <div class="mt-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                          [class.bg-green-100]="booking.isFullyPaid"
+                          [class.text-green-800]="booking.isFullyPaid"
+                          [class.bg-yellow-100]="!booking.isFullyPaid"
+                          [class.text-yellow-800]="!booking.isFullyPaid">
+                      {{ booking.isFullyPaid ? 'مدفوع بالكامل' : 'دفع جزئي' }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+    
+              <!-- Status -->
+              <td class="px-6 py-4">
+                <select 
+                  [(ngModel)]="booking.status"
+                  (change)="onStatusChange(booking, booking.status)"
+                  [ngClass]="getStatusConfig(booking.status).bgClass + ' ' + getStatusConfig(booking.status).textClass"
+                  class="px-3 py-2 rounded-xl border-0 font-semibold text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300">
+                  <option value="Confirmed">مؤكد</option>
+                  <option value="Pending">في الانتظار</option>
+                  <option value="Cancelled">ملغي</option>
+                  <option value="Completed">مكتمل</option>
+                </select>
+              </td>
+    
+              <!-- Actions -->
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <button 
+                    (click)="onView(booking)"
+                    class="w-9 h-9 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-colors duration-300 group"
+                    title="عرض التفاصيل">
+                    <i class="pi pi-eye group-hover:scale-110 transition-transform duration-300"></i>
+                  </button>
+                  <button 
+                    (click)="onEdit(booking)"
+                    class="w-9 h-9 bg-amber-100 hover:bg-amber-200 text-amber-600 rounded-lg flex items-center justify-center transition-colors duration-300 group"
+                    title="تعديل">
+                    <i class="pi pi-pencil group-hover:scale-110 transition-transform duration-300"></i>
+                  </button>
+                  <button 
+                    (click)="onDelete(booking)"
+                    class="w-9 h-9 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-colors duration-300 group"
+                    title="حذف">
+                    <i class="pi pi-trash group-hover:scale-110 transition-transform duration-300"></i>
+                  </button>
+                  <!-- Notes button if notes exist -->
+                  <button 
+                    *ngIf="booking.notes && booking.notes.trim() && booking.notes !== 'string'"
+                    (click)="showNotes(booking)"
+                    class="w-9 h-9 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center transition-colors duration-300 group"
+                    title="عرض الملاحظات">
+                    <i class="pi pi-file-text group-hover:scale-110 transition-transform duration-300"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    
+      <!-- Empty State -->
+      <div *ngIf="filteredBookings.length === 0 && !isLoading" class="text-center py-16">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="pi pi-book text-4xl text-gray-400"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">لا توجد حجوزات</h3>
+        <p class="text-gray-600 mb-6">لا توجد حجوزات تطابق معايير البحث المحددة</p>
+        <button 
+          (click)="addNewBooking()"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-300 flex items-center gap-2 mx-auto">
+          <i class="pi pi-plus"></i>
+          <span>إضافة حجز جديد</span>
+        </button>
+      </div>
+  
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center py-16">
+        <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-gray-600">جاري تحميل البيانات...</p>
+      </div>
+    </div>
+
+
+
+
+  </div>
+
+
+
+</div>
+
+<!-- View Details Modal -->
+<div *ngIf="showViewModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+    <!-- Modal Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+          <i class="fas fa-info-circle"></i>
+          تفاصيل الحجز
+        </h2>
+        <button 
+          (click)="closeViewModal()"
+          class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-all duration-300">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="p-8 overflow-y-auto max-h-[calc(90vh-100px)]">
+      <div *ngIf="selectedBooking" class="space-y-8">
+        <!-- Student Info -->
+        <div class="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200">
+          <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+            <i class="fas fa-user-graduate text-emerald-600"></i>
+            معلومات الطالب
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">اسم الطالب</label>
+              <p class="text-lg font-bold text-gray-900">{{ selectedBooking.student?.name || 'غير محدد' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">رقم الحجز</label>
+              <p class="text-lg font-bold text-gray-900">{{ selectedBooking.id }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Booking Info -->
+        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-200">
+          <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+            <i class="fas fa-calendar-check text-blue-600"></i>
+            معلومات الحجز
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">المجموعة</label>
+              <p class="text-lg font-bold text-gray-900">{{ selectedBooking.group?.groupName }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">المعلم</label>
+              <p class="text-lg font-bold text-gray-900">{{ selectedBooking.teacher?.name || 'غير محدد' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ الحجز</label>
+              <p class="text-lg font-bold text-gray-900">{{ formatDate(selectedBooking.bookingDate.toString()) }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">وقت المجموعة</label>
+              <p class="text-lg font-bold text-gray-900">{{ selectedBooking.groupTime || 'غير محدد' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">الوقت المختار</label>
+              <p class="text-lg font-bold text-gray-900">{{ selectedBooking.timeSlot || 'غير محدد' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
+              <span [ngClass]="getStatusConfig(selectedBooking.status).bgClass + ' ' + getStatusConfig(selectedBooking.status).textClass" 
+                    class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold gap-2">
+                <i [ngClass]="getStatusConfig(selectedBooking.status).icon"></i>
+                {{ getStatusConfig(selectedBooking.status).label }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
+          <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+            <i class="fas fa-money-bill-wave text-purple-600"></i>
+            معلومات الدفع
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <label class="block text-sm font-medium text-gray-700 mb-1">إجمالي الرسوم</label>
+              <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(selectedBooking.fees) }}</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <label class="block text-sm font-medium text-gray-700 mb-1">المبلغ المدفوع</label>
+              <p class="text-2xl font-bold text-emerald-600">{{ formatCurrency(selectedBooking.paidAmount) }}</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <label class="block text-sm font-medium text-gray-700 mb-1">المبلغ المتبقي</label>
+              <p class="text-2xl font-bold" 
+                 [class.text-red-600]="(selectedBooking.remainingAmount || 0) > 0"
+                 [class.text-emerald-600]="(selectedBooking.remainingAmount || 0) === 0">
+                {{ formatCurrency(selectedBooking.remainingAmount) }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold"
+                  [class.bg-emerald-100]="selectedBooking.isFullyPaid"
+                  [class.text-emerald-800]="selectedBooking.isFullyPaid"
+                  [class.bg-amber-100]="!selectedBooking.isFullyPaid"
+                  [class.text-amber-800]="!selectedBooking.isFullyPaid">
+              <i [class]="selectedBooking.isFullyPaid ? 'fas fa-check-circle mr-2' : 'fas fa-exclamation-triangle mr-2'"></i>
+              {{ selectedBooking.isFullyPaid ? 'تم الدفع بالكامل' : 'يوجد مبلغ متبقي' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div *ngIf="selectedBooking.notes && selectedBooking.notes.trim() && selectedBooking.notes !== 'string'" 
+             class="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl p-6 border border-gray-200">
+          <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+            <i class="fas fa-sticky-note text-gray-600"></i>
+            الملاحظات
+          </h3>
+          <div class="bg-white rounded-xl p-4 shadow-sm">
+            <p class="text-gray-700 leading-relaxed">{{ selectedBooking.notes }}</p>
+          </div>
+        </div>
+
+        <!-- Timestamps -->
+        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-6 border border-indigo-200">
+          <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+            <i class="fas fa-clock text-indigo-600"></i>
+            تواريخ مهمة
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ الإنشاء</label>
+              <p class="text-lg font-bold text-gray-900">{{ formatDate(selectedBooking.bookingDate.toString()) }}</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <label class="block text-sm font-medium text-gray-700 mb-1">آخر تحديث</label>
+              <p class="text-lg font-bold text-gray-900">{{ formatDate(selectedBooking.bookingDate.toString()) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="bg-gray-50 px-8 py-4 flex justify-end gap-3">
+      <button 
+        (click)="closeViewModal()"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-bold transition-all duration-300">
+        إغلاق
+      </button>
+      <button 
+        (click)="editFromView()"
+        class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center gap-2">
+        <i class="fas fa-edit"></i>
+        تعديل
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div *ngIf="showEditModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+    <!-- Modal Header -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-600 px-8 py-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+          <i class="fas fa-edit"></i>
+          تعديل الحجز
+        </h2>
+        <button 
+          (click)="closeEditModal()"
+          class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-all duration-300">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Content -->
+    <form (ngSubmit)="updateBooking()" class="p-8 overflow-y-auto max-h-[calc(90vh-180px)]">
+      <div class="space-y-6">
+        <!-- Basic Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">معرف المعلم</label>
+            <input 
+              type="number"
+              [(ngModel)]="editForm.teacherId"
+              name="teacherId"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-300"
+              placeholder="أدخل معرف المعلم">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">معرف المجموعة</label>
+            <input 
+              type="number"
+              [(ngModel)]="editForm.groupId"
+              name="groupId"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-300"
+              placeholder="أدخل معرف المجموعة">
+          </div>
+        </div>
+
+        <!-- Date and Times -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">التاريخ</label>
+            <input 
+              type="datetime-local"
+              [(ngModel)]="editForm.date"
+              name="date"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-300">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">وقت المجموعة</label>
+            <input 
+              type="text"
+              [(ngModel)]="editForm.groupTime"
+              name="groupTime"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-300"
+              placeholder="أدخل وقت المجموعة">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">الوقت المختار</label>
+            <input 
+              type="text"
+              [(ngModel)]="editForm.timeSlot"
+              name="timeSlot"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-300"
+              placeholder="أدخل الوقت المختار">
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+          <select 
+            [(ngModel)]="editForm.status"
+            name="status"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-300">
+            <option value="Pending">في الانتظار</option>
+            <option value="Confirmed">مؤكد</option>
+            <option value="Cancelled">ملغي</option>
+            <option value="Completed">مكتمل</option>
+          </select>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+          <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-money-bill-wave text-green-600"></i>
+            معلومات الدفع
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">الرسوم</label>
+              <input 
+                type="number"
+                [(ngModel)]="editForm.fees"
+                name="fees"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+                placeholder="أدخل مبلغ الرسوم">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">المبلغ المدفوع</label>
+              <input 
+                type="number"
+                [(ngModel)]="editForm.paidAmount"
+                name="paidAmount"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+                placeholder="أدخل المبلغ المدفوع">
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-2">الملاحظات</label>
+          <textarea 
+            [(ngModel)]="editForm.notes"
+            name="notes"
+            rows="4"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-300 resize-none"
+            placeholder="أدخل أي ملاحظات إضافية"></textarea>
+        </div>
+      </div>
+    </form>
+
+    <!-- Modal Footer -->
+    <div class="bg-gray-50 px-8 py-4 flex justify-end gap-3">
+      <button 
+        type="button"
+        (click)="closeEditModal()"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-bold transition-all duration-300">
+        إلغاء
+      </button>
+      <button 
+        type="submit"
+        (click)="updateBooking()"
+        class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center gap-2">
+        <i class="fas fa-save"></i>
+        حفظ التغييرات
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+    <!-- Pagination -->
+    <div *ngIf="filteredBookings.length > 0" class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="text-sm text-gray-600">
+          عرض {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredBookings.length) }} 
+          من أصل {{ filteredBookings.length }} حجز
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <!-- Previous Button -->
+          <button 
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300">
+            <i class="pi pi-angle-right"></i>
+          </button>
+
+          <!-- Page Numbers -->
+          <div class="flex items-center gap-1">
+            <button 
+              *ngFor="let page of pageNumbers.slice(Math.max(0, currentPage - 3), Math.min(pageNumbers.length, currentPage + 2))"
+              (click)="goToPage(page)"
+              [class.bg-blue-500]="page === currentPage"
+              [class.text-white]="page === currentPage"
+              [class.hover:bg-gray-50]="page !== currentPage"
+              class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center transition-colors duration-300 font-medium">
+              {{ page }}
+            </button>
+          </div>
+
+          <!-- Next Button -->
+          <button 
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300">
+            <i class="pi pi-angle-left"></i>
+          </button>
+        </div>
+
+        <!-- Items per page -->
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">عرض:</label>
+          <select 
+            [(ngModel)]="itemsPerPage"
+            (change)="currentPage = 1"
+            class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+          </select>
+          <span class="text-sm text-gray-600">عنصر</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

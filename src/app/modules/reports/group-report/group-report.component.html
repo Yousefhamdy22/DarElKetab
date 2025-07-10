@@ -1,0 +1,398 @@
+
+<div class="p-6 bg-gray-50 min-h-screen print:bg-white rtl" dir="rtl">
+
+  <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden print:shadow-none">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-teal-600 to-teal-700 text-white p-6 relative">
+  
+      
+      <div class="flex justify-between items-center">
+        <div class="flex items-center">
+          <div class="bg-white p-2 rounded-full w-16 h-16 flex items-center justify-center mr-4">
+            <img src="assets/logo.png" alt="مركز القرآن" class="h-12">
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold">تقرير المجموعة</h1>
+            <p class="text-sm opacity-90">الفصل الدراسي الأول {{currentYear}}</p>
+          </div>
+        </div>
+        
+        <div class="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+          <h2 class="text-xl font-bold">مجموعة: {{group.name}}</h2>
+          <p class="text-sm opacity-90">المعلم: {{group.teacher}}</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="p-6">
+      <!-- Group Basic Information -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-teal-700 mb-4 pb-2 border-b border-gray-200 flex items-center">
+          <i class="pi pi-users mr-2"></i>
+          معلومات المجموعة
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">عدد الطلاب</label>
+            <p class="font-semibold">{{group.studentsCount}} طالباً</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">العمر المتوسط</label>
+            <p class="font-semibold">{{group.averageAge}} سنة</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ التأسيس</label>
+            <p class="font-semibold">{{group.startDate | date:'yyyy/MM/dd'}}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">المستوى</label>
+            <p class="font-semibold">{{group.level}}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">قاعة الدراسة</label>
+            <p class="font-semibold">{{group.classroom}}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">أيام الدراسة</label>
+            <p class="font-semibold">{{group.studyDays}}</p>
+          </div>
+        </div>
+        
+        <!-- Group Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 transition-transform hover:translate-y-1 hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-indigo-500">نسبة الحضور</p>
+                <h3 class="text-2xl font-bold text-indigo-700">{{group.stats.attendancePercentage}}%</h3>
+              </div>
+              <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                <i class="pi pi-calendar text-indigo-600"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-green-50 p-4 rounded-lg border border-green-100 transition-transform hover:translate-y-1 hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-green-500">متوسط الحفظ</p>
+                <h3 class="text-2xl font-bold text-green-700">{{group.stats.memorizationAvg}}/100</h3>
+              </div>
+              <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="pi pi-book text-green-600"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-amber-50 p-4 rounded-lg border border-amber-100 transition-transform hover:translate-y-1 hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-amber-500">متوسط التلاوة</p>
+                <h3 class="text-2xl font-bold text-amber-700">{{group.stats.recitationAvg}}/100</h3>
+              </div>
+              <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <i class="pi pi-volume-up text-amber-600"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-cyan-50 p-4 rounded-lg border border-cyan-100 transition-transform hover:translate-y-1 hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-cyan-500">نسبة الانضباط</p>
+                <h3 class="text-2xl font-bold text-cyan-700">{{group.stats.behaviorAvg}}/100</h3>
+              </div>
+              <div class="w-10 h-10 bg-cyan-100 rounded-full flex items-center justify-center">
+                <i class="pi pi-check-circle text-cyan-600"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Performance Overview -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-teal-700 mb-4 pb-2 border-b border-gray-200 flex items-center">
+          <i class="pi pi-chart-line mr-2"></i>
+          نظرة عامة على الأداء
+        </h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Group Performance Chart -->
+          <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-4 h-80">
+            <h3 class="text-base font-semibold text-gray-700 mb-4">تطور أداء المجموعة شهرياً</h3>
+            <p-chart type="line" [data]="groupPerformanceData" [options]="chartPerformanceOptions"></p-chart>
+          </div>
+          
+          <!-- Pie Chart for Category Distribution -->
+          <div class="bg-white rounded-lg shadow-sm p-4 h-80">
+            <h3 class="text-base font-semibold text-gray-700 mb-4">توزيع مستويات الطلاب</h3>
+            <p-chart type="pie" [data]="skillDistributionData" [options]="pieChartOptions"></p-chart>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Student Ranking Table -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-teal-700 mb-4 pb-2 border-b border-gray-200 flex items-center">
+          <i class="pi pi-list mr-2"></i>
+          ترتيب الطلاب
+        </h2>
+        
+        <p-table [value]="group.students" [paginator]="true" [rows]="5" styleClass="p-datatable-sm"
+                 [rowHover]="true" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="rank" style="width: 5%">#</th>
+              <th pSortableColumn="name" style="width: 25%">اسم الطالب <p-sortIcon field="name"></p-sortIcon></th>
+              <th pSortableColumn="attendance" style="width: 15%">الحضور <p-sortIcon field="attendance"></p-sortIcon></th>
+              <th pSortableColumn="memorization" style="width: 15%">الحفظ <p-sortIcon field="memorization"></p-sortIcon></th>
+              <th pSortableColumn="recitation" style="width: 15%">التلاوة <p-sortIcon field="recitation"></p-sortIcon></th>
+              <th pSortableColumn="behavior" style="width: 15%">السلوك <p-sortIcon field="behavior"></p-sortIcon></th>
+              <th pSortableColumn="total" style="width: 10%">المجموع <p-sortIcon field="total"></p-sortIcon></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-student let-i="rowIndex">
+            <tr>
+              <td>
+                <div class="flex justify-center">
+                  <span class="w-6 h-6 rounded-full flex items-center justify-center text-sm"
+                        [ngClass]="{
+                          'bg-yellow-100 text-yellow-700': i === 0,
+                          'bg-gray-100 text-gray-700': i === 1,
+                          'bg-amber-100 text-amber-700': i === 2,
+                          'bg-slate-50 text-slate-600': i > 2
+                        }">
+                    {{student.rank}}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <img [src]="'https://ui-avatars.com/api/?name=' + student.name + '&background=059669&color=fff&size=32'" 
+                       class="w-8 h-8 rounded-full mr-2" alt="صورة الطالب">
+                  <span>{{student.name}}</span>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <span class="w-8 text-center">{{student.attendance}}%</span>
+                  <p-progressBar [value]="student.attendance" styleClass="h-1.5 flex-1 mr-2" [style]="{'background-color': '#e5e7eb'}"></p-progressBar>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <span class="w-8 text-center">{{student.memorization}}</span>
+                  <p-progressBar [value]="student.memorization" styleClass="h-1.5 flex-1 mr-2" [style]="{'background-color': '#e5e7eb'}"></p-progressBar>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <span class="w-8 text-center">{{student.recitation}}</span>
+                  <p-progressBar [value]="student.recitation" styleClass="h-1.5 flex-1 mr-2" [style]="{'background-color': '#e5e7eb'}"></p-progressBar>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <span class="w-8 text-center">{{student.behavior}}</span>
+                  <p-progressBar [value]="student.behavior" styleClass="h-1.5 flex-1 mr-2" [style]="{'background-color': '#e5e7eb'}"></p-progressBar>
+                </div>
+              </td>
+              <td>
+                <span class="font-bold" [ngClass]="{
+                  'text-green-600': student.total >= 85,
+                  'text-blue-600': student.total >= 70 && student.total < 85,
+                  'text-amber-600': student.total >= 60 && student.total < 70,
+                  'text-red-600': student.total < 60
+                }">{{student.total}}</span>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      
+      <!-- Monthly Analysis Section -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-teal-700 mb-4 pb-2 border-b border-gray-200 flex items-center">
+          <i class="pi pi-calendar mr-2"></i>
+          التحليل الشهري
+        </h2>
+        
+        <p-tabView styleClass="month-tabs">
+          <p-tabPanel *ngFor="let month of months" [header]="month.name">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Attendance Overview -->
+              <div class="bg-white rounded-lg shadow-sm p-4">
+                <h3 class="text-base font-semibold text-gray-700 mb-4 flex items-center">
+                  <i class="pi pi-users mr-2 text-teal-500"></i>
+                  سجل الحضور الشهري
+                </h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  <div class="bg-green-50 p-3 rounded-md text-center border border-green-100">
+                    <div class="text-xl font-bold text-green-600">{{month.attendance.present}}%</div>
+                    <div class="text-xs text-green-800">حضور</div>
+                  </div>
+                  <div class="bg-red-50 p-3 rounded-md text-center border border-red-100">
+                    <div class="text-xl font-bold text-red-600">{{month.attendance.absent}}%</div>
+                    <div class="text-xs text-red-800">غياب</div>
+                  </div>
+                  <div class="bg-amber-50 p-3 rounded-md text-center border border-amber-100">
+                    <div class="text-xl font-bold text-amber-600">{{month.attendance.late}}%</div>
+                    <div class="text-xs text-amber-800">تأخر</div>
+                  </div>
+                  <div class="bg-blue-50 p-3 rounded-md text-center border border-blue-100">
+                    <div class="text-xl font-bold text-blue-600">{{month.attendance.excused}}%</div>
+                    <div class="text-xs text-blue-800">معذور</div>
+                  </div>
+                </div>
+                
+                <div class="h-40">
+                  <p-chart type="bar" [data]="getAttendanceChartData(month)" [options]="barChartOptions"></p-chart>
+                </div>
+              </div>
+              
+              <!-- Skills Distribution -->
+              <div class="bg-white rounded-lg shadow-sm p-4">
+                <h3 class="text-base font-semibold text-gray-700 mb-4 flex items-center">
+                  <i class="pi pi-chart-pie mr-2 text-teal-500"></i>
+                  توزيع المهارات
+                </h3>
+                
+                <div class="h-56 mb-4">
+                  <p-chart type="radar" [data]="getSkillsChartData(month)" [options]="radarChartOptions"></p-chart>
+                </div>
+                
+                <p class="text-sm text-gray-500 text-center">
+                  متوسط درجات الطلاب في كل مهارة لشهر {{month.name}}
+                </p>
+              </div>
+            </div>
+            
+            <!-- Areas for Improvement -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="bg-amber-50 border border-amber-100 rounded-lg p-4">
+                <div class="font-semibold text-amber-800 mb-3 flex items-center">
+                  <i class="pi pi-exclamation-circle mr-1 text-amber-500"></i>
+                  مجالات تحتاج إلى تحسين
+                </div>
+                <ul class="pr-5 list-disc">
+                  <li *ngFor="let item of month.areasForImprovement" class="mb-2">{{item}}</li>
+                </ul>
+              </div>
+              
+              <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+                <div class="font-semibold text-emerald-800 mb-3 flex items-center">
+                  <i class="pi pi-star mr-1 text-emerald-500"></i>
+                  الإنجازات والنقاط الإيجابية
+                </div>
+                <ul class="pr-5 list-disc">
+                  <li *ngFor="let item of month.achievements" class="mb-2">{{item}}</li>
+                </ul>
+              </div>
+            </div>
+          </p-tabPanel>
+        </p-tabView>
+      </div>
+      
+      <!-- Comparison with Other Groups -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-teal-700 mb-4 pb-2 border-b border-gray-200 flex items-center">
+          <i class="pi pi-sort-alt mr-2"></i>
+          مقارنة مع المجموعات الأخرى
+        </h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-lg shadow-sm p-4">
+            <h3 class="text-base font-semibold text-gray-700 mb-4">نسب النجاح والتفوق</h3>
+            <div class="h-64">
+              <p-chart type="bar" [data]="groupComparisonData" [options]="groupComparisonOptions"></p-chart>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow-sm p-4">
+            <h3 class="text-base font-semibold text-gray-700 mb-4">متوسط أداء المجموعات</h3>
+            <div class="h-64">
+              <p-chart type="radar" [data]="groupRadarData" [options]="groupRadarOptions"></p-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Teacher Recommendations -->
+      <div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-8">
+        <h2 class="text-lg font-bold text-blue-800 mb-4 flex items-center">
+          <i class="pi pi-bookmark mr-2 text-blue-600"></i>
+          توصيات وملاحظات المعلم
+        </h2>
+        
+        <p class="mb-4">{{group.teacherNotes}}</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div class="bg-white p-3 rounded-md border border-blue-100 flex items-start">
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-1 shrink-0">
+              <i class="pi pi-book text-blue-600 text-sm"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm mb-1">استراتيجيات التعليم</h4>
+              <p class="text-sm text-gray-600">{{group.recommendations.teaching}}</p>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-md border border-blue-100 flex items-start">
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-1 shrink-0">
+              <i class="pi pi-users text-blue-600 text-sm"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm mb-1">ديناميكية المجموعة</h4>
+              <p class="text-sm text-gray-600">{{group.recommendations.dynamics}}</p>
+            </div>
+          </div>
+          
+          <div class="bg-white p-3 rounded-md border border-blue-100 flex items-start">
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-1 shrink-0">
+              <i class="pi pi-chart-line text-blue-600 text-sm"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-sm mb-1">خطة التطوير</h4>
+              <p class="text-sm text-gray-600">{{group.recommendations.improvement}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="mt-10 pt-6 border-t border-gray-200">
+        <div class="text-center mb-6">
+          <p class="font-medium">تم إنشاء هذا التقرير بتاريخ {{today | date:'yyyy/MM/dd'}}</p>
+          <p class="text-sm text-gray-500">مركز القرآن الكريم - إدارة شؤون الطلاب</p>
+        </div>
+        
+        <div class="flex justify-center">
+          <div class="text-center mx-4">
+            <p class="font-medium mb-1">توقيع المعلم</p>
+            <div class="h-16 border-b border-gray-400"></div>
+            <p class="text-sm text-gray-500 mt-1">{{group.teacher}}</p>
+          </div>
+          <div class="text-center mx-4">
+            <p class="font-medium mb-1">توقيع المشرف</p>
+            <div class="h-16 border-b border-gray-400"></div>
+            <p class="text-sm text-gray-500 mt-1">{{group.supervisor}}</p>
+          </div>
+        </div>
+        
+        <div class="text-center mt-6">
+          <button pButton icon="pi pi-print" label="طباعة التقرير" 
+                  class="p-button-rounded p-button-teal print:hidden" 
+                  (click)="printReport()"></button>
+          <button pButton icon="pi pi-file-pdf" label="تصدير PDF" 
+                  class="p-button-rounded p-button-secondary mr-2 print:hidden" 
+                  (click)="exportPDF()"></button>
+        </div>
+      </div>
+    
+    </div>
+  </div>
+</div>

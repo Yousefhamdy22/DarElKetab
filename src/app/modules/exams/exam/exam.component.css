@@ -1,0 +1,57 @@
+/* Add to your component's styles */
+:host ::ng-deep {
+    /* Fix for dropdown visibility */
+    .p-dropdown {
+      .p-dropdown-label {
+        color: inherit !important;
+      }
+      
+      .p-dropdown-items-wrapper {
+        max-height: 200px;
+      }
+    }
+  
+    /* Fix for checkbox */
+    .p-checkbox {
+      .p-checkbox-box {
+        border: 1px solid #ced4da;
+        
+        &.p-highlight {
+          background: #059669;
+          border-color: #059669;
+        }
+      }
+    }
+  
+    /* Fix for tabmenu */
+    .p-tabmenu {
+      .p-tabmenu-nav {
+        .p-menuitem-link {
+          color: white;
+          
+          &:not(.p-disabled):hover {
+            color: white;
+            opacity: 0.8;
+          }
+          
+          &.p-highlight {
+            border-color: white;
+          }
+        }
+      }
+    }
+  }
+  
+  /* Loading state */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }

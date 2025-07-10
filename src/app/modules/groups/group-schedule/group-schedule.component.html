@@ -1,0 +1,169 @@
+<div class="p-6" dir="rtl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-teal-800">جدول المجموعة</h2>
+        <p class="text-gray-600">إدارة الجدول الزمني وتتبع الحضور والاختبارات</p>
+      </div>
+      <div>
+        <button pButton icon="pi pi-plus" label="إضافة جدول" 
+                class="p-button-success" 
+                (click)="addNewSchedule()"></button>
+      </div>
+    </div>
+  
+    <!-- Calendar and Schedule -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Calendar -->
+      <div class="bg-white p-4 rounded-lg shadow-sm">
+        <p-calendar [(ngModel)]="selectedDate" [inline]="true" 
+                    [showWeek]="true" dateFormat="yy/mm/dd"></p-calendar>
+      </div>
+  
+      <!-- Schedule List -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+          <p-table [value]="schedules" [paginator]="true" [rows]="5">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>اليوم</th>
+                <th>الوقت</th>
+                <th>النوع</th>
+                <th>العنوان</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-schedule>
+              <tr>
+                <td>{{schedule.day}}</td>
+                <td>{{schedule.time}}</td>
+                <td>
+                  <span [ngClass]="{
+                    'bg-blue-100 text-blue-800': schedule.type === 'regular',
+                    'bg-purple-100 text-purple-800': schedule.type === 'exam',
+                    'bg-amber-100 text-amber-800': schedule.type === 'special'
+                  }" class="px-2 py-1 rounded-full text-xs">
+                    {{schedule.type === 'regular' ? 'عادي' : 
+                      schedule.type === 'exam' ? 'اختبار' : 'خاص'}}
+                  </span>
+                </td>
+                <td>{{schedule.title}}</td>
+                <td>
+                  <span [ngClass]="{
+                    'bg-green-100 text-green-800': schedule.attendanceTaken,
+                    'bg-gray-100 text-gray-800': !schedule.attendanceTaken
+                  }" class="px-2 py-1 rounded-full text-xs">
+                    {{schedule.attendanceTaken ? 'مكتمل' : 'قيد الانتظار'}}
+                  </span>
+                </td>
+                <td>
+                  <div class="flex space-x-2 space-x-reverse">
+                    <button *ngIf="schedule.type === 'exam'" 
+                            pButton icon="pi pi-pencil" 
+                            class="p-button-sm p-button-warning"
+                            (click)="openExamModal(schedule)"
+                            pTooltip="إدخال الدرجات" tooltipPosition="top"></button>
+                    
+                    <button *ngIf="!schedule.attendanceTaken" 
+                            pButton icon="pi pi-user-edit" 
+                            class="p-button-sm p-button-info"
+                            (click)="openAttendanceModal(schedule)"
+                            pTooltip="تسجيل الحضور" tooltipPosition="top"></button>
+                    
+                    <button pButton icon="pi pi-trash" 
+                            class="p-button-sm p-button-danger"
+                            (click)="deleteSchedule(schedule)"
+                            pTooltip="حذف" tooltipPosition="top"></button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Attendance Modal -->
+    <p-dialog header="تسجيل الحضور" [(visible)]="isAttendanceModalVisible" 
+              [style]="{width: '600px'}" [modal]="true">
+      <div *ngIf="selectedSchedule">
+        <h3 class="font-bold mb-4">{{selectedSchedule.title}} - {{selectedSchedule.day}} {{selectedSchedule.time}}</h3>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="p-3 text-right">اسم الطالب</th>
+                <th class="p-3 text-right">حالة الحضور</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let student of students" class="border-b border-gray-100">
+                <td class="p-3">{{student.name}}</td>
+                <td class="p-3">
+                  <p-dropdown [options]="attendanceStatuses" [(ngModel)]="student.status" 
+                              optionLabel="label" optionValue="value"
+                              [style]="{width: '100%'}"></p-dropdown>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="flex justify-end mt-4">
+          <button pButton icon="pi pi-save" label="حفظ الحضور" 
+                  class="p-button-primary" 
+                  (click)="saveAttendance()"></button>
+        </div>
+      </div>
+    </p-dialog>
+  
+    <!-- Exam Results Modal -->
+    <p-dialog header="إدخال درجات الاختبار" [(visible)]="isExamModalVisible" 
+              [style]="{width: '700px'}" [modal]="true">
+      <div *ngIf="selectedSchedule">
+        <h3 class="font-bold mb-4">{{selectedSchedule.title}} - {{selectedSchedule.day}} {{selectedSchedule.time}}</h3>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="p-3 text-right">اسم الطالب</th>
+                <th class="p-3 text-right">حالة الحضور</th>
+                <th class="p-3 text-right">درجة الاختبار (0-100)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let student of students" class="border-b border-gray-100">
+                <td class="p-3">{{student.name}}</td>
+                <td class="p-3">
+                  <p-dropdown [options]="attendanceStatuses" [(ngModel)]="student.status" 
+                              optionLabel="label" optionValue="value"
+                              [style]="{width: '100%'}"></p-dropdown>
+                </td>
+                <td class="p-3">
+                  <input type="number" min="0" max="100" [(ngModel)]="student.examScore" 
+                         class="w-full border border-gray-300 rounded p-2">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="flex justify-between mt-4">
+          <div>
+            <label class="block text-sm text-gray-500 mb-1">معدل المجموعة</label>
+            <p class="font-bold text-lg">
+              {{calculateAverage()}}/100
+            </p>
+          </div>
+          <button pButton icon="pi pi-save" label="حفظ النتائج" 
+                  class="p-button-primary" 
+                  (click)="saveExamResults()"></button>
+        </div>
+      </div>
+    </p-dialog>
+  
+    <p-toast></p-toast>
+  </div>

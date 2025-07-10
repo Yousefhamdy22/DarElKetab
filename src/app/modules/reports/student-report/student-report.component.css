@@ -1,0 +1,48 @@
+.report-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media print {
+    .report-container {
+      box-shadow: none;
+      padding: 0;
+    }
+    
+    button {
+      display: none !important;
+    }
+  }
+  
+  .bg-green-100 {
+    background-color: #ecfdf5;
+  }
+  
+  .text-green-800 {
+    color: #065f46;
+  }
+  
+  .bg-red-100 {
+    background-color: #fee2e2;
+  }
+  
+  .text-red-800 {
+    color: #991b1b;
+  }
+  
+  .bg-amber-100 {
+    background-color: #fef3c7;
+  }
+  
+  .text-amber-800 {
+    color: #92400e;
+  }
+  
+  .bg-blue-100 {
+    background-color: #dbeafe;
+  }
+  
+  .text-blue-800 {
+    color: #1e40af;
+  }

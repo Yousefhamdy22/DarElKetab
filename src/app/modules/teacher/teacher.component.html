@@ -1,0 +1,528 @@
+<div class="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen" dir="rtl">
+  <!-- Header with Modern Design -->
+  <div
+    class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl p-8 mb-8 text-white shadow-xl relative overflow-hidden">
+    <!-- Decorative Elements -->
+    <div class="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-16 -translate-y-16"></div>
+    <div class="absolute bottom-0 right-0 w-40 h-40 bg-white/5 rounded-full translate-x-20 translate-y-20"></div>
+
+    <div class="relative z-10 flex justify-between items-center">
+      <div>
+        <h2 class="text-4xl font-bold mb-2">إدارة المعلمين</h2>
+        <p class="text-emerald-100 text-lg">إدارة وتنظيم بيانات معلمي مركز القرآن الكريم</p>
+        <div class="flex items-center mt-4 text-emerald-100">
+          <i class="pi pi-users text-lg ml-2"></i>
+          <span class="text-sm">إجمالي المعلمين: {{ teachers.length }}</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-3">
+        <button pButton icon="pi pi-plus" label="إضافة معلم جديد"
+          class="p-button-raised p-button-lg bg-white text-emerald-600 border-0 hover:bg-emerald-50 shadow-lg"
+          (click)="showAddDialog()"></button>
+        <button pButton icon="pi pi-download" label="تصدير البيانات"
+          class="p-button-outlined p-button-sm border-white text-white hover:bg-white/10"
+          (click)="exportTeachers()"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-600 text-sm font-medium">إجمالي المعلمين</p>
+          <p class="text-2xl font-bold text-gray-800">{{ teachers.length }}</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+          <i class="pi pi-users text-blue-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-600 text-sm font-medium">المعلمين النشطين</p>
+          <p class="text-2xl font-bold text-green-600">{{ getActiveTeachersCount() }}</p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+          <i class="pi pi-check-circle text-green-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-600 text-sm font-medium">معلمين جدد هذا الشهر</p>
+          <p class="text-2xl font-bold text-purple-600">{{ getNewTeachersCount() }}</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+          <i class="pi pi-user-plus text-purple-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-600 text-sm font-medium">متوسط سنوات الخبرة</p>
+          <p class="text-2xl font-bold text-orange-600">{{ getAverageExperience() }}</p>
+        </div>
+        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+          <i class="pi pi-star text-orange-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Search and Filter Section -->
+  <div class="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
+    <div class="flex flex-col md:flex-row gap-4 items-center">
+      <div class="flex-1">
+        <span class="p-input-icon-left w-full">
+          <i class="pi pi-search text-gray-400"></i>
+          <input pInputText [(ngModel)]="searchTerm" (input)="filterTeachers()" placeholder="البحث في المعلمين..."
+            class="w-full pl-10 pr-4 py-3 border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+        </span>
+      </div>
+      <div class="flex gap-3">
+        <p-dropdown [options]="statusOptions" [(ngModel)]="selectedStatus" (onChange)="filterTeachers()"
+          placeholder="الحالة" class="w-32"></p-dropdown>
+        <p-dropdown [options]="specializationOptions" [(ngModel)]="selectedSpecialization" (onChange)="filterTeachers()"
+          placeholder="التخصص" class="w-40"></p-dropdown>
+        <button pButton icon="pi pi-filter-slash" label="مسح الفلاتر"
+          class="p-button-outlined p-button-sm border-gray-300 hover:border-gray-400" (click)="clearFilters()"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teachers Table Card with Enhanced Design -->
+  <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-6 border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center">
+          <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center ml-3">
+            <i class="pi pi-users text-emerald-600 text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-800">قائمة المعلمين</h3>
+            <p class="text-gray-600 text-sm">إدارة وتنظيم بيانات المعلمين</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button pButton icon="pi pi-refresh"
+            class="p-button-outlined p-button-sm border-gray-300 hover:border-gray-400" (click)="refreshTeachers()"
+            pTooltip="تحديث القائمة"></button>
+          <button pButton icon="pi pi-cog" class="p-button-outlined p-button-sm border-gray-300 hover:border-gray-400"
+            pTooltip="إعدادات العرض"></button>
+        </div>
+      </div>
+    </div>
+
+    <p-table [value]="filteredTeachers" [loading]="isLoading" [paginator]="true" [rows]="10"
+      [rowsPerPageOptions]="[5,10,25,50]" [showCurrentPageReport]="true"
+      currentPageReportTemplate="عرض {first} إلى {last} من {totalRecords} معلم"
+      [globalFilterFields]="['name', 'email', 'phoneNunber', 'groupName']" styleClass="p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr class="bg-gray-50">
+          <th class="!text-right p-4 font-bold text-gray-700">
+            <div class="flex items-center">
+              <i class="pi pi-user ml-2 text-emerald-600"></i>
+              المعلم
+            </div>
+          </th>
+          <th class="!text-right p-4 font-bold text-gray-700">
+            <div class="flex items-center">
+              <i class="pi pi-phone ml-2 text-emerald-600"></i>
+              التواصل
+            </div>
+          </th>
+          <th class="!text-right p-4 font-bold text-gray-700">
+            <div class="flex items-center">
+              <i class="pi pi-users ml-2 text-emerald-600"></i>
+              المجموعة
+            </div>
+          </th>
+          <th class="!text-right p-4 font-bold text-gray-700">
+            <div class="flex items-center">
+              <i class="pi pi-calendar ml-2 text-emerald-600"></i>
+              تاريخ الانضمام
+            </div>
+          </th>
+          <th class="!text-right p-4 font-bold text-gray-700">
+            <div class="flex items-center">
+              <i class="pi pi-circle ml-2 text-emerald-600"></i>
+              الحالة
+            </div>
+          </th>
+          <th class="!text-center p-4 font-bold text-gray-700">
+            <div class="flex items-center justify-center">
+              <i class="pi pi-cog ml-2 text-emerald-600"></i>
+              الإجراءات
+            </div>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-teacher let-rowIndex="rowIndex">
+        <tr class="hover:bg-emerald-50 transition-all duration-200 group">
+          <!-- Teacher Info -->
+          <td class="p-4">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg ml-3">
+                {{ getInitials(teacher.name) }}
+              </div>
+              <div>
+                <p class="font-bold text-gray-800 text-lg">{{ teacher.name }}</p>
+                <p class="text-gray-600 text-sm">معرف المعلم: {{ teacher.teacherId }}</p>
+              </div>
+            </div>
+          </td>
+
+          <!-- Contact Info -->
+          <td class="p-4">
+            <div class="space-y-1">
+              <div class="flex items-center text-gray-600">
+                <i class="pi pi-phone text-xs ml-2"></i>
+                <span class="text-sm">{{ teacher.phoneNunber }}</span>
+              </div>
+              <div class="flex items-center text-blue-600 hover:text-blue-800 cursor-pointer" *ngIf="teacher.email">
+                <i class="pi pi-envelope text-xs ml-2"></i>
+                <span class="text-sm hover:underline">{{ teacher.email }}</span>
+              </div>
+              <div class="flex items-center text-gray-500" *ngIf="!teacher.email">
+                <i class="pi pi-envelope text-xs ml-2"></i>
+                <span class="text-sm">غير محدد</span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Group Name -->
+          <td class="p-4">
+            <div class="bg-blue-50 rounded-lg p-2 text-center">
+              <p class="text-blue-800 font-medium text-sm">{{ teacher.groupName }}</p>
+            </div>
+          </td>
+
+          <!-- Join Date -->
+          <td class="p-4">
+            <div class="bg-gray-100 rounded-lg p-2 text-center">
+              <p class="text-gray-800 font-medium text-sm">{{ teacher.joinDa | date:'yyyy/MM/dd' }}</p>
+              <p class="text-gray-500 text-xs">{{ getDateDifference(teacher.joinDa) }}</p>
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td class="p-4">
+            <div class="flex justify-center">
+              <span class="px-4 py-2 rounded-full text-xs font-bold flex items-center shadow-sm" [ngClass]="{
+             'bg-green-100 text-green-800 border border-green-200': teacher.status === 'Active',
+             'bg-red-100 text-red-800 border border-red-200': teacher.status !== 'Active'
+           }">
+                <i [class]="teacher.status === 'Active' ? 'pi pi-check-circle ml-1' : 'pi pi-times-circle ml-1'"></i>
+                {{ teacher.status === 'Active' ? 'نشط' : 'غير نشط' }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Enhanced Actions -->
+          <td class="p-4">
+            <div class="flex justify-center items-center gap-2">
+              <!-- View Button -->
+              <button pButton icon="pi pi-eye"
+                class="p-button-rounded p-button-sm p-button-outlined border-blue-400 text-blue-600 hover:bg-blue-50 hover:border-blue-500 transition-all duration-200"
+                (click)="viewTeacher(teacher)" pTooltip="عرض التفاصيل" tooltipPosition="top">
+              </button>
+
+              <!-- Edit Button -->
+              <button pButton icon="pi pi-pencil"
+                class="p-button-rounded p-button-sm p-button-outlined border-amber-400 text-amber-600 hover:bg-amber-50 hover:border-amber-500 transition-all duration-200"
+                (click)="showEditDialog(teacher)" pTooltip="تعديل البيانات" tooltipPosition="top">
+              </button>
+
+              <!-- Toggle Status Button -->
+              <button pButton [icon]="teacher.status === 'Active' ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                [class]="teacher.status === 'Active' ? 
+               'p-button-rounded p-button-sm p-button-outlined border-orange-400 text-orange-600 hover:bg-orange-50 hover:border-orange-500' : 
+               'p-button-rounded p-button-sm p-button-outlined border-green-400 text-green-600 hover:bg-green-50 hover:border-green-500'" (click)="toggleTeacherStatus(teacher)"
+                [pTooltip]="teacher.status === 'Active' ? 'إلغاء التفعيل' : 'تفعيل الحساب'" tooltipPosition="top">
+              </button>
+
+              <!-- More Actions Dropdown -->
+              <button pButton icon="pi pi-ellipsis-v"
+                class="p-button-rounded p-button-sm p-button-text text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                (click)="showMoreActions($event, teacher)" pTooltip="المزيد من الإجراءات" tooltipPosition="top">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center py-12">
+            <div class="flex flex-col items-center justify-center text-gray-400">
+              <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="pi pi-users text-3xl text-gray-300"></i>
+              </div>
+              <p class="text-xl font-semibold mb-2">لا يوجد معلمون مسجلون</p>
+              <p class="text-sm text-gray-500 mb-4">ابدأ بإضافة معلمين جدد لإدارة مركز القرآن الكريم</p>
+              <button pButton label="إضافة معلم جديد" icon="pi pi-plus"
+                class="p-button-raised bg-emerald-500 border-0 hover:bg-emerald-600" (click)="showAddDialog()">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Enhanced Teacher Form Dialog -->
+  <p-dialog header="{{selectedTeacher ? 'تعديل بيانات المعلم' : 'إضافة معلم جديد'}}" [(visible)]="isDialogVisible"
+    [modal]="true" [style]="{width: '800px'}" [draggable]="false" [resizable]="false"
+    [breakpoints]="{'960px': '80vw', '640px': '95vw'}" styleClass="shadow-2xl">
+    <form [formGroup]="teacherForm" class="p-2">
+      <div class="space-y-8">
+        <!-- Personal Information -->
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-xl border border-emerald-200">
+          <h4 class="font-bold text-xl text-emerald-800 mb-6 flex items-center">
+            <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center ml-3">
+              <i class="pi pi-user text-white"></i>
+            </div>
+            المعلومات الشخصية
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-gray-700">الاسم الكامل *</label>
+              <input pInputText formControlName="name"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
+                [ngClass]="{'border-red-500': teacherForm.get('name')?.invalid && teacherForm.get('name')?.touched}"
+                placeholder="أدخل الاسم الكامل">
+              <small *ngIf="teacherForm.get('name')?.invalid && teacherForm.get('name')?.touched"
+                class="text-red-500 text-xs flex items-center mt-1">
+                <i class="pi pi-exclamation-triangle ml-1"></i> الاسم الكامل مطلوب
+              </small>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-gray-700">رقم الهاتف *</label>
+              <input pInputText formControlName="phone"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
+                [ngClass]="{'border-red-500': teacherForm.get('phone')?.invalid && teacherForm.get('phone')?.touched}"
+                placeholder="05XXXXXXXX">
+              <small *ngIf="teacherForm.get('phone')?.invalid && teacherForm.get('phone')?.touched"
+                class="text-red-500 text-xs flex items-center mt-1">
+                <i class="pi pi-exclamation-triangle ml-1"></i> رقم الهاتف مطلوب
+              </small>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-gray-700">البريد الإلكتروني *</label>
+              <input pInputText formControlName="email" type="email"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
+                [ngClass]="{'border-red-500': teacherForm.get('email')?.invalid && teacherForm.get('email')?.touched}"
+                placeholder="example@example.com">
+              <small *ngIf="teacherForm.get('email')?.invalid && teacherForm.get('email')?.touched"
+                class="text-red-500 text-xs flex items-center mt-1">
+                <i class="pi pi-exclamation-triangle ml-1"></i> بريد إلكتروني صحيح مطلوب
+              </small>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-gray-700">تاريخ الانضمام *</label>
+              <p-calendar formControlName="joinDate" dateFormat="yy/mm/dd" [showIcon]="true" [readonlyInput]="true"
+                class="w-full"
+                inputStyleClass="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+              </p-calendar>
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional Information -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+          <h4 class="font-bold text-xl text-blue-800 mb-6 flex items-center">
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center ml-3">
+              <i class="pi pi-briefcase text-white"></i>
+            </div>
+            المعلومات المهنية
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-gray-700">المؤهل العلمي *</label>
+              <input pInputText formControlName="qualification"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                [ngClass]="{'border-red-500': teacherForm.get('qualification')?.invalid && teacherForm.get('qualification')?.touched}"
+                placeholder="مثال: بكالوريوس في الدراسات الإسلامية">
+              <small *ngIf="teacherForm.get('qualification')?.invalid && teacherForm.get('qualification')?.touched"
+                class="text-red-500 text-xs flex items-center mt-1">
+                <i class="pi pi-exclamation-triangle ml-1"></i> المؤهل العلمي مطلوب
+              </small>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-gray-700">التخصص *</label>
+              <p-dropdown formControlName="specialization" [options]="specializationOptions" placeholder="اختر التخصص"
+                class="w-full" [style]="{'width': '100%'}" panelStyleClass="text-right">
+              </p-dropdown>
+              <small *ngIf="teacherForm.get('specialization')?.invalid && teacherForm.get('specialization')?.touched"
+                class="text-red-500 text-xs flex items-center mt-1">
+                <i class="pi pi-exclamation-triangle ml-1"></i> التخصص مطلوب
+              </small>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-bold text-gray-700">سنوات الخبرة</label>
+              <input pInputText formControlName="experience" type="number"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                placeholder="عدد سنوات الخبرة">
+            </div>
+
+            <div class="flex items-center space-x-2 space-x-reverse mt-6">
+              <p-checkbox [binary]="true" formControlName="isActive" inputId="isActive"
+                [style]="{'width': '20px', 'height': '20px'}">
+              </p-checkbox>
+              <label for="isActive" class="text-gray-700 font-medium cursor-pointer">
+                الحساب نشط ومفعل
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+        <button pButton label="إلغاء" icon="pi pi-times"
+          class="p-button-outlined p-button-lg border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 px-6"
+          (click)="isDialogVisible = false">
+        </button>
+        <button pButton [label]="selectedTeacher ? 'تحديث البيانات' : 'حفظ المعلم'" icon="pi pi-check"
+          class="p-button-raised p-button-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0 px-8"
+          (click)="saveTeacher()" [disabled]="teacherForm.invalid">
+        </button>
+      </div>
+    </form>
+  </p-dialog>
+
+  <!-- More Actions Menu -->
+  <p-menu #moreActionsMenu [model]="moreActionsItems" [popup]="true"></p-menu>
+
+  <!-- Teacher Details Dialog -->
+  <p-dialog header="تفاصيل المعلم" [(visible)]="showDetailsDialog" [modal]="true" [style]="{width: '600px'}"
+    [draggable]="false" [resizable]="false">
+    <div *ngIf="selectedTeacher" class="space-y-6">
+      <!-- Teacher Avatar and Basic Info -->
+      <div
+        class="flex items-center space-x-4 space-x-reverse p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl">
+        <div
+          class="w-20 h-20 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+          {{ getInitials(selectedTeacher.name) }}
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-gray-800">{{ selectedTeacher.name }}</h3>
+          <!-- <p class="text-emerald-600 font-medium">{{ selectedTeacher.specialization }}</p> -->
+          <!-- <div class="flex items-center mt-2">
+            <span class="px-3 py-1 rounded-full text-xs font-medium" 
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': selectedTeacher.isActive,
+                    'bg-red-100 text-red-800': !selectedTeacher.isActive
+                  }">
+              {{ selectedTeacher.isActive ? 'نشط' : 'غير نشط' }}
+            </span>
+          </div> -->
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h4 class="font-bold text-gray-700 mb-2 flex items-center">
+            <i class="pi pi-phone ml-2 text-blue-500"></i>
+            رقم الهاتف
+          </h4>
+          <p class="text-gray-600">{{ selectedTeacher.phoneNumber }}</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h4 class="font-bold text-gray-700 mb-2 flex items-center">
+            <i class="pi pi-envelope ml-2 text-blue-500"></i>
+            البريد الإلكتروني
+          </h4>
+          <p class="text-blue-600 hover:underline cursor-pointer">{{ selectedTeacher.phoneNumber }}</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h4 class="font-bold text-gray-700 mb-2 flex items-center">
+            <i class="pi pi-calendar ml-2 text-blue-500"></i>
+            تاريخ الانضمام
+          </h4>
+          <p class="text-gray-600">{{ selectedTeacher.joinDate | date:'longDate':'':'ar-SA' }}</p>
+        </div>
+        <!--         
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h4 class="font-bold text-gray-700 mb-2 flex items-center">
+            <i class="pi pi-star ml-2 text-blue-500"></i>
+            سنوات الخبرة
+          </h4>
+          <p class="text-gray-600">{{ selectedTeacher.experience }} سنة</p>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg md:col-span-2">
+          <h4 class="font-bold text-gray-700 mb-2 flex items-center">
+            <i class="pi pi-graduation-cap ml-2 text-blue-500"></i>
+            المؤهل العلمي
+          </h4>
+          <p class="text-gray-600">{{ selectedTeacher.qualification }}</p>
+        </div> -->
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-3">
+        <button pButton label="إغلاق" icon="pi pi-times" class="p-button-outlined border-gray-300 text-gray-600"
+          (click)="showDetailsDialog = false"></button>
+        <button pButton label="تعديل" icon="pi pi-pencil" class="p-button-raised bg-emerald-500 border-0"
+          (click)="editFromDetails()"></button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Confirmation Dialog -->
+  <p-confirmDialog header="تأكيد الإجراء" icon="pi pi-exclamation-triangle" acceptLabel="نعم" rejectLabel="لا"
+    [style]="{width: '450px'}" acceptButtonStyleClass="p-button-raised bg-red-500 border-0"
+    rejectButtonStyleClass="p-button-outlined border-gray-300 text-gray-600">
+  </p-confirmDialog>
+
+  <!-- Toast Messages -->
+  <p-toast position="top-center" [style]="{marginTop: '80px'}">
+    <ng-template let-message pTemplate="message">
+      <div class="flex items-center p-4 rounded-lg shadow-lg" [ngClass]="{
+             'bg-green-100 border-l-4 border-green-500': message.severity === 'success',
+             'bg-red-100 border-l-4 border-red-500': message.severity === 'error',
+             'bg-yellow-100 border-l-4 border-yellow-500': message.severity === 'warn',
+             'bg-blue-100 border-l-4 border-blue-500': message.severity === 'info'
+           }">
+        <i [class]="message.severity === 'success' ? 'pi pi-check-circle text-green-600' : 
+                   message.severity === 'error' ? 'pi pi-times-circle text-red-600' :
+                   message.severity === 'warn' ? 'pi pi-exclamation-triangle text-yellow-600' :
+                   'pi pi-info-circle text-blue-600'" class="text-xl ml-3"></i>
+        <div>
+          <div class="font-bold" [ngClass]="{
+            'text-green-800': message.severity === 'success',
+            'text-red-800': message.severity === 'error',
+            'text-yellow-800': message.severity === 'warn',
+            'text-blue-800': message.severity === 'info'
+          }">{{ message.summary }}</div>
+          <div class="text-sm mt-1" [ngClass]="{
+            'text-green-700': message.severity === 'success',
+            'text-red-700': message.severity === 'error',
+            'text-yellow-700': message.severity === 'warn',
+            'text-blue-700': message.severity === 'info'
+          }">{{ message.detail }}</div>
+        </div>
+      </div>
+    </ng-template>
+  </p-toast>
+</div>

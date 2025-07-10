@@ -1,0 +1,73 @@
+/* Add these styles to your component CSS or global styles */
+
+/* Custom scrollbar for the student details page */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #047857;
+  }
+  
+  /* Smooth transitions for all elements */
+  * {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Improve chart tooltips */
+  :host ::ng-deep .p-chart .p-tooltip {
+    font-family: "Tajawal", sans-serif;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Improve dropdown styling */
+  :host ::ng-deep .p-dropdown {
+    border-radius: 8px;
+  }
+  
+  :host ::ng-deep .p-dropdown-panel {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Improve button styling */
+  :host ::ng-deep .p-button {
+    border-radius: 8px;
+  }
+  
+  :host ::ng-deep .p-button-rounded {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  /* Improve tag styling */
+  :host ::ng-deep .p-tag {
+    font-weight: 500;
+  }
+  .high-attendance {
+    color: #10b981; /* green */
+    font-weight: bold;
+  }
+  
+  .medium-attendance {
+    color: #f59e0b; /* amber */
+    font-weight: bold;
+  }
+  
+  .low-attendance {
+    color: #ef4444; /* red */
+    font-weight: bold;
+  }
+  

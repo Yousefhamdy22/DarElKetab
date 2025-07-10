@@ -1,0 +1,122 @@
+.sidebar {
+  background: linear-gradient(180deg, #0f766e 0%, #134e4a 100%);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-collapsed {
+  width: 70px;
+}
+
+.sidebar-expanded {
+  width: 280px;
+}
+
+.mobile-hidden {
+  transform: translateX(100%);
+}
+
+.mobile-visible {
+  transform: translateX(0);
+  width: 280px;
+}
+
+.sidebar-link {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-2px);
+}
+
+.sidebar-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 4px 0 0 #fbbf24;
+}
+
+.sidebar-collapsed .sidebar-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.sidebar-expanded .sidebar-text {
+  opacity: 1;
+  width: auto;
+  transition: all 0.3s ease;
+}
+
+.sidebar-icon {
+  min-width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.badge {
+  background: #ef4444;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.badge.blue { background: #3b82f6; }
+.badge.green { background: #10b981; }
+.badge.yellow { background: #f59e0b; }
+
+.sidebar-collapsed .badge {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.dropdown-menu {
+  transition: max-height 0.3s ease-in-out;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 280px !important;
+  }
+  
+  .sidebar-text {
+    opacity: 1 !important;
+    width: auto !important;
+  }
+  
+  .badge {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+  }}

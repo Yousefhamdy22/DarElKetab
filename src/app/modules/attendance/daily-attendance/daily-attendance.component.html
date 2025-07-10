@@ -1,0 +1,404 @@
+<!-- daily-attendance.component.html -->
+<div class="min-h-screen bg-gray-50" dir="rtl">
+  <!-- Full Screen Main Content -->
+  <main class="w-full">
+    <!-- Mobile Header -->
+    <div class="lg:hidden bg-white p-4 shadow-sm sticky top-0 z-10">
+      <div class="flex justify-between items-center">
+        <button class="p-2 rounded-lg" style="background: #059669; color: white;">
+          <i class="pi pi-bars"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-calendar-check text-lg" style="color: #059669;"></i>
+          <h2 class="text-lg font-bold" style="color: #059669;">تسجيل الحضور اليومي</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Width Header -->
+    <header class="bg-white p-6 shadow-sm mb-6">
+      <div class="max-w-full mx-auto">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+          <div class="flex items-center gap-4">
+            <!-- Dashboard Return Button -->
+            <button routerLink="/dashboard" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-3 rounded-lg transition-colors">
+              <i class="pi pi-arrow-right text-lg"></i>
+            </button>
+            
+            <div>
+              <h1 class="text-2xl lg:text-3xl font-bold flex items-center gap-3" style="color: #059669;">
+                <i class="pi pi-calendar-check text-2xl"></i>
+                تسجيل الحضور اليومي
+              </h1>
+              <p class="mt-1" style="color: #059669;">قم بتسجيل حضور الطلاب للجلسة اليومية</p>
+            </div>
+          </div>
+          
+          <div class="flex flex-wrap gap-3">
+            <button
+              class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2 transition-colors"
+              (click)="loadDraft()">
+              <i class="pi pi-download"></i>
+              <span>استعادة المسودة</span>
+            </button>
+            <button
+              class="px-4 py-2 text-white rounded-lg flex items-center gap-2 transition-colors hover:opacity-90"
+              style="background: #059669;"
+              routerLink="/attendance">
+              <i class="pi pi-arrow-right"></i>
+              <span>العودة للحضور</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Full Width Main Content -->
+    <div class="w-full px-6 pb-10">
+      <div class="max-w-full mx-auto">
+        <!-- Attendance Form -->
+        <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+          <h3 class="text-lg font-semibold mb-6 flex items-center gap-2" style="color: #059669;">
+            <i class="pi pi-edit"></i>
+            بيانات الحضور
+          </h3>
+
+          <!-- Full Width Form Fields -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Date Selector -->
+            <div class="space-y-2">
+              <label class="block text-gray-700 font-medium text-sm">التاريخ <span class="text-red-500">*</span></label>
+              <p-calendar [(ngModel)]="selectedDate" 
+                         [disabledDays]="[0,6]" 
+                         styleClass="w-full" 
+                         [showIcon]="true"
+                         dateFormat="dd/mm/yy" 
+                         [readonlyInput]="true">
+              </p-calendar>
+            </div>
+
+            <!-- Enhanced Group Filter with Persistent Name -->
+            <div class="space-y-2">
+              <label class="block text-gray-700 font-medium text-sm">
+                المجموعة <span class="text-red-500">*</span>
+              </label>
+              
+              <p-dropdown [options]="groups" 
+                         [(ngModel)]="selectedGroup" 
+                         optionLabel="groupName" 
+                         optionValue="groupID"
+                         placeholder="اختر المجموعة" 
+                         [filter]="true" 
+                         filterBy="groupName" 
+                         [showClear]="false"
+                         styleClass="w-full"
+                         (onChange)="onGroupChange($event)">
+                
+                <!-- Selected Item Template - Always Show Group Name -->
+                <ng-template pTemplate="selectedItem">
+                  <div class="flex items-center gap-2" *ngIf="selectedGroup">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background: #059669;">
+                      <span class="text-xs font-bold">
+                        {{ getSelectedGroupName().charAt(0) || '؟' }}
+                      </span>
+                    </div>
+                    <span class="font-medium">{{ getSelectedGroupName() }}</span>
+                  </div>
+                  <span *ngIf="!selectedGroup" class="text-gray-500">اختر المجموعة</span>
+                </ng-template>
+
+                <!-- Dropdown Items Template -->
+                <ng-template let-group pTemplate="item">
+                  <div class="flex items-center gap-2 p-2 rounded hover:opacity-75" style="background: rgba(5, 150, 105, 0.1);">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" style="background: #059669;">
+                      <span class="text-xs font-bold">
+                        {{ (group.groupName || '')?.charAt(0) || '؟' }}
+                      </span>
+                    </div>
+                    <span class="font-medium">{{ group.groupName || 'مجموعة غير معروفة' }}</span>
+                  </div>
+                </ng-template>
+              </p-dropdown>
+
+              <!-- Show Selected Group Name Below Dropdown -->
+              <div *ngIf="selectedGroup" class="text-sm font-medium p-2 rounded-lg" style="background: rgba(5, 150, 105, 0.1); color: #059669;">
+                <i class="pi pi-check-circle ml-1"></i>
+                تم اختيار: {{ getSelectedGroupName() }}
+              </div>
+
+              <!-- Validation Message -->
+              <small *ngIf="!selectedGroup && formSubmitted" class="text-red-500 text-xs flex items-center gap-1">
+                <i class="pi pi-exclamation-triangle"></i>
+                يجب اختيار المجموعة
+              </small>
+            </div>
+
+            <!-- Teacher Selection -->
+            <div class="space-y-2">
+              <label class="block text-gray-700 font-medium text-sm">المعلم المسؤول</label>
+              <p-dropdown [options]="teachers" 
+                         [(ngModel)]="selectedTeacher" 
+                         styleClass="w-full"
+                         optionLabel="name" 
+                         placeholder="اختر المعلم">
+                <ng-template pTemplate="selectedItem">
+                  <div class="flex items-center gap-2" *ngIf="selectedTeacher">
+                    <i class="pi pi-user" style="color: #059669;"></i>
+                    <span>{{ selectedTeacher.name }}</span>
+                  </div>
+                </ng-template>
+                <ng-template let-teacher pTemplate="item">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-user" style="color: #059669;"></i>
+                    <span>{{ teacher.name }}</span>
+                  </div>
+                </ng-template>
+              </p-dropdown>
+            </div>
+
+            <!-- Search -->
+            <div class="space-y-2">
+              <label class="block text-gray-700 font-medium text-sm">بحث في الطلاب</label>
+              <div class="relative">
+                <input type="text" 
+                       pInputText 
+                       [(ngModel)]="searchQuery" 
+                       (input)="onSearchChange()"
+                       placeholder="بحث بالاسم..." 
+                                               class="w-full pr-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-opacity-50 focus:border-green-600 focus:ring-green-600" />
+                <i class="pi pi-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="flex flex-wrap gap-3 mb-6">
+            <button (click)="markAllStatus('present')"
+                    class="px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 hover:opacity-90"
+                    style="background: #059669;">
+              <i class="pi pi-check-circle"></i>
+              <span>تحديد الكل حاضر</span>
+            </button>
+            <button (click)="markAllStatus('absent')"
+                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2">
+              <i class="pi pi-times-circle"></i>
+              <span>تحديد الكل غائب</span>
+            </button>
+            <button (click)="saveDraft()"
+                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2">
+              <i class="pi pi-save"></i>
+              <span>حفظ كمسودة</span>
+            </button>
+            <button (click)="resetForm()"
+                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2">
+              <i class="pi pi-refresh"></i>
+              <span>إعادة تعيين</span>
+            </button>
+          </div>
+
+          <!-- Full Width Statistics -->
+          <div class="bg-gray-50 p-4 rounded-lg mb-6">
+            <div class="flex flex-col lg:flex-row justify-between gap-4">
+              <div class="flex flex-col md:flex-row gap-4 flex-1">
+                <!-- Student Count -->
+                <div class="flex items-center bg-white p-3 rounded-lg shadow-sm flex-1">
+                  <div class="p-2 rounded-lg ml-3 text-white" style="background: #059669;">
+                    <i class="pi pi-users text-lg"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500">إجمالي الطلاب</p>
+                    <p class="text-lg font-bold text-gray-800">{{ filteredStudents.length }}</p>
+                  </div>
+                </div>
+
+                <!-- Present Count -->
+                <div class="flex items-center bg-white p-3 rounded-lg shadow-sm flex-1">
+                  <div class="p-2 rounded-lg ml-3 text-white" style="background: #059669;">
+                    <i class="pi pi-check-circle text-lg"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500">حاضر</p>
+                    <p class="text-lg font-bold text-gray-800">{{ getPresentCount() }}</p>
+                  </div>
+                </div>
+
+                <!-- Absent Count -->
+                <div class="flex items-center bg-white p-3 rounded-lg shadow-sm flex-1">
+                  <div class="bg-red-100 text-red-600 p-2 rounded-lg ml-3">
+                    <i class="pi pi-times-circle text-lg"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500">غائب</p>
+                    <p class="text-lg font-bold text-gray-800">{{ getAbsentCount() }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="flex items-center flex-wrap gap-2 self-end">
+                <span class="px-2 py-1 rounded-full text-xs text-white" style="background: #059669;">حاضر</span>
+                <span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">غائب</span>
+                <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">معذور</span>
+                <span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">متأخر</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div *ngIf="loading" class="flex justify-center items-center py-12">
+            <div class="flex flex-col items-center gap-3">
+              <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200" style="border-top-color: #059669;"></div>
+              <p class="font-medium" style="color: #059669;">جاري تحميل البيانات...</p>
+            </div>
+          </div>
+
+          <!-- No Group Selected -->
+          <div *ngIf="!loading && !selectedGroup"
+               class="bg-blue-50 border border-blue-200 text-blue-800 p-6 rounded-lg mb-6 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="pi pi-info-circle text-blue-600 text-xl"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-lg mb-2">اختر مجموعة لبدء التسجيل</h4>
+                <p>الرجاء اختيار مجموعة من القائمة المنسدلة أعلاه لعرض الطلاب وتسجيل الحضور</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Width Students Table -->
+          <div *ngIf="!loading && selectedGroup" class="w-full bg-white rounded-lg shadow-sm border overflow-hidden">
+            
+            <!-- Table Header -->
+            <div class="p-4 border-b" style="background: rgba(5, 150, 105, 0.1);">
+              <h4 class="text-lg font-bold flex items-center gap-2" style="color: #059669;">
+                <i class="pi pi-table"></i>
+                <span>قائمة الطلاب - {{ getSelectedGroupName() }}</span>
+                <span class="px-3 py-1 rounded-full text-sm text-white" style="background: #059669;">
+                  {{ filteredStudents.length }} طالب
+                </span>
+              </h4>
+            </div>
+
+            <!-- Full Width Table Content -->
+            <div class="w-full overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="text-right py-3 px-4 font-semibold text-gray-700 w-12">#</th>
+                    <th class="text-right py-3 px-4 font-semibold text-gray-700">الطالب</th>
+                    <th class="text-right py-3 px-4 font-semibold text-gray-700 w-32">المجموعة</th>
+                    <th class="text-right py-3 px-4 font-semibold text-gray-700 w-40">عدد الغيابات السابقة</th>
+                    <th class="text-right py-3 px-4 font-semibold text-gray-700 w-40">الحالة</th>
+                    <th class="text-right py-3 px-4 font-semibold text-gray-700">ملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let student of filteredStudents; let i = index" 
+                      class="border-b border-gray-100 transition-colors hover:bg-green-50">
+                    <td class="py-3 px-4 font-medium text-gray-600">{{ i + 1 }}</td>
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white" style="background: #059669;">
+                        </div>
+                        <span class="font-medium text-gray-800">{{ student.name }}</span>
+                      </div>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="px-2 py-1 rounded-full text-xs font-medium text-white" style="background: #059669;">
+                        {{ student.group }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2">
+                        <span [ngClass]="(student.absences || 0) > 0 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'"
+                              class="px-2 py-1 rounded-full text-xs font-medium">
+                          {{ student.absences || 0 }}
+                        </span>
+                        <div *ngIf="student.absences" class="text-xs text-red-600">
+                          <i class="pi pi-exclamation-triangle"></i>
+                          <span class="mr-1">تجاوز الحد</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-3 px-4">
+                      <p-dropdown [options]="statusOptions" 
+                                 [(ngModel)]="student.status" 
+                                 optionLabel="label" 
+                                 optionValue="value"
+                                 styleClass="w-full">
+                        <ng-template pTemplate="selectedItem">
+                          <div class="flex items-center gap-2">
+                            <i class="pi" [ngClass]="{
+                              'pi-check-circle': student.status === 'present',
+                              'pi-times-circle text-red-600': student.status === 'absent',
+                              'pi-info-circle text-blue-600': student.status === 'excused',
+                              'pi-clock text-amber-600': student.status === 'late'
+                            }" [style.color]="student.status === 'present' ? '#059669' : ''"></i>
+                            <span>{{ getStatusLabel(student.status || 'present') }}</span>
+                          </div>
+                        </ng-template>
+                        <ng-template let-option pTemplate="item">
+                          <div class="flex items-center gap-2">
+                            <i class="pi" [ngClass]="{
+                              'pi-check-circle': option.value === 'present',
+                              'pi-times-circle text-red-600': option.value === 'absent',
+                              'pi-info-circle text-blue-600': option.value === 'excused',
+                              'pi-clock text-amber-600': option.value === 'late'
+                            }" [style.color]="option.value === 'present' ? '#059669' : ''"></i>
+                            <span>{{ option.label }}</span>
+                          </div>
+                        </ng-template>
+                      </p-dropdown>
+                    </td>
+                    <td class="py-3 px-4">
+                      <input type="text" 
+                             pInputText 
+                             [(ngModel)]="student.notes" 
+                             placeholder="أضف ملاحظات..."
+                             class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-opacity-50 focus:border-green-600 focus:ring-green-600" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Empty State -->
+              <div *ngIf="filteredStudents.length === 0" class="text-center py-8">
+                <div class="flex flex-col items-center text-gray-500 gap-3">
+                  <i class="pi pi-search text-3xl"></i>
+                  <span class="font-medium">لا يوجد طلاب مطابقين للبحث</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Students Message -->
+            <div *ngIf="!loading && selectedGroup && filteredStudents.length === 0"
+                 class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-6 m-4 rounded-lg text-center">
+              <div class="flex flex-col items-center gap-3">
+                <i class="pi pi-exclamation-triangle text-yellow-600 text-2xl"></i>
+                <div>
+                  <h4 class="font-bold text-lg">لا يوجد طلاب في هذه المجموعة</h4>
+                  <p>المجموعة المحددة لا تحتوي على أي طلاب مسجلين</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Width Submit Button -->
+          <div class="mt-6 flex justify-end w-full" *ngIf="!loading && selectedGroup && filteredStudents.length > 0">
+            <button [disabled]="attendanceRecorded || !selectedGroup || submitting"
+                    (click)="saveAttendance()"
+                    class="px-8 py-3 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 font-medium hover:opacity-90 disabled:bg-gray-400"
+                    style="background: #059669;">
+              <i class="pi" [ngClass]="submitting ? 'pi-spin pi-spinner' : (attendanceRecorded ? 'pi-check' : 'pi-save')"></i>
+              <span>{{ attendanceRecorded ? 'تم تسجيل الحضور' : (submitting ? 'جاري الحفظ...' : 'حفظ سجل الحضور') }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast for messages -->
+  <p-toast position="bottom-left"></p-toast>
+</div>

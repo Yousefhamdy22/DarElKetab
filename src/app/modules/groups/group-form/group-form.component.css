@@ -1,0 +1,53 @@
+:host ::ng-deep .p-inputtext:enabled:focus {
+  box-shadow: 0 0 0 2px #1f4e35;
+  border-color: #10b981;
+}
+
+:host ::ng-deep .p-dropdown:not(.p-disabled).p-focus {
+  box-shadow: 0 0 0 2px #d1fae5;
+  border-color: #10b981;
+}
+
+:host ::ng-deep .p-calendar:not(.p-disabled).p-focus {
+  box-shadow: 0 0 0 2px #d1fae5;
+  border-color: #10b981;
+}
+
+:host ::ng-deep .p-inputtextarea:enabled:focus {
+  box-shadow: 0 0 0 2px #d1fae5;
+  border-color: #10b981;
+}
+
+:host ::ng-deep .p-checkbox .p-checkbox-box.p-highlight {
+  border-color: #10b981;
+  background: #10b981;
+}
+
+:host ::ng-deep .p-radiobutton .p-radiobutton-box.p-highlight {
+  border-color: #10b981;
+  background: #10b981;
+}
+
+:host ::ng-deep .p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+:host ::ng-deep .p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+:host ::ng-deep .p-dialog-custom .p-dialog-header {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+:host ::ng-deep .p-dialog-custom .p-dialog-footer {
+  border-top: none;
+  padding-top: 0;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}

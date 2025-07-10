@@ -1,0 +1,757 @@
+<!-- quran-progress.component.html -->
+<div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+    <!-- Main Navigation Tabs -->
+    <p-tabView styleClass="custom-tabs group-tabs">
+     
+
+        <div class="p-4">
+            <!-- Overview Section -->
+            <div class="mb-8">
+              <h3 class="text-2xl font-bold text-teal-800 mb-6 border-b border-teal-200 pb-3">نظرة عامة على تقدم قراءة المجموعة</h3>
+          
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Progress Chart Card -->
+                <div class="lg:col-span-2 bg-white rounded-xl border border-teal-100 p-5 shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-semibold text-teal-800 flex items-center gap-2">
+                      <i class="pi pi-chart-line text-teal-600"></i>
+                      <span>معدل حضور القراءة</span>
+                    </h4>
+                    <div class="flex gap-2">
+                      <p-dropdown [options]="timeRangeOptions" [(ngModel)]="selectedTimeRange" optionLabel="name"
+                        styleClass="p-dropdown-sm w-32 border-teal-300" (onChange)="updateAttendanceStats()"></p-dropdown>
+                      <button pButton icon="pi pi-chart-bar" class="p-button-text p-button-sm"
+                        [ngClass]="{'bg-teal-100 text-teal-700': chartType === 'bar'}" (click)="changeChartType('bar')"></button>
+                      <button pButton icon="pi pi-chart-line" class="p-button-text p-button-sm"
+                        [ngClass]="{'bg-teal-100 text-teal-700': chartType === 'line'}" (click)="changeChartType('line')"></button>
+                    </div>
+                  </div>
+                  <div class="h-80">
+                    <p-chart [type]="chartType" [data]="readingAttendanceData"
+                      [options]="attendanceChartOptions"></p-chart>
+                  </div>
+                </div>
+          
+                <!-- Attendance Stats Card -->
+                <div class="bg-white rounded-xl border border-teal-100 p-5 shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-semibold text-teal-800 flex items-center gap-2">
+                      <i class="pi pi-users text-teal-600"></i>
+                      <span>إحصائيات الحضور</span>
+                    </h4>
+                    <p-dropdown [options]="attendanceStatFilters" [(ngModel)]="selectedStatFilter" optionLabel="name"
+                      styleClass="p-dropdown-sm w-32 border-teal-300" (onChange)="updateAttendanceStats()"></p-dropdown>
+                  </div>
+          
+                  <div class="space-y-4 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div *ngFor="let student of topStudents" class="p-3 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors">
+                      <div class="flex justify-between mb-1 text-sm">
+                        <span class="font-medium text-teal-900">{{student.name}}</span>
+                        <span class="text-teal-700 font-bold">{{student.attendanceDays}} يوم</span>
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-gradient-to-r from-teal-400 to-teal-600 h-2.5 rounded-full transition-all duration-500"
+                          [style.width]="(student.attendanceDays / totalSessions) * 100 + '%'"></div>
+                      </div>
+                    </div>
+                  </div>
+          
+                  <div class="mt-6 p-3 bg-gradient-to-r from-teal-50 to-teal-100 rounded-lg border border-teal-200">
+                    <h5 class="font-medium mb-2 text-teal-800 flex items-center gap-2">
+                      <i class="pi pi-chart-pie text-teal-600"></i>
+                      <span>معدل حضور المجموعة</span>
+                    </h5>
+                    <div class="flex items-center gap-3">
+                      <div class="w-full bg-gray-200 rounded-full h-4 relative">
+                        <div class="bg-gradient-to-r from-teal-500 to-teal-700 h-4 rounded-full transition-all duration-1000"
+                          [style.width]="groupAttendanceRate + '%'">
+                          <span
+                            class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xs font-bold">
+                            {{groupAttendanceRate}}%
+                          </span>
+                        </div>
+                      </div>
+                      <i class="pi pi-users text-teal-700 text-lg"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          
+              <div class="flex justify-end mt-6">
+                <button pButton icon="pi pi-file-pdf" label="تصدير تقرير"
+                  class="p-button-outlined p-button-sm border-teal-300 text-teal-700 hover:bg-teal-50 hover:border-teal-400 transition-colors"
+                  (click)="exportReport()">
+                  <span class="mr-2">تصدير تقرير</span>
+                </button>
+              </div>
+            </div>
+          
+            <!-- Section Separator -->
+            <div class="relative my-8">
+              <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                <div class="w-full border-t border-teal-200"></div>
+              </div>
+              <div class="relative flex justify-center">
+                <span class="bg-white px-4 text-lg text-teal-700 font-medium">
+                  <i class="pi pi-book-open mr-2"></i>
+                  الجلسة القادمة
+                </span>
+              </div>
+            </div>
+          </div>
+
+    
+        <!-- Stats Cards -->
+        <div class="mb-6 bg-gradient-to-l from-teal-600 to-teal-800 rounded-xl shadow-lg p-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-white">
+            <div
+              class="flex flex-col items-center justify-center p-4 bg-white bg-opacity-10 rounded-xl border border-teal-500 border-opacity-30">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-calendar-check text-teal-300"></i>
+                <div class="text-sm">نسبة الحضور</div>
+              </div>
+              <div class="text-2xl font-bold">{{groupAttendanceRate || 85}}%</div>
+            </div>
+            <div
+              class="flex flex-col items-center justify-center p-4 bg-white bg-opacity-10 rounded-xl border border-teal-500 border-opacity-30">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-book text-teal-300"></i>
+                <div class="text-sm">متوسط الحفظ</div>
+              </div>
+              <div class="text-2xl font-bold">{{averageMemorization || 78}}</div>
+            </div>
+            <div
+              class="flex flex-col items-center justify-center p-4 bg-white bg-opacity-10 rounded-xl border border-teal-500 border-opacity-30">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-star text-teal-300"></i>
+                <div class="text-sm">متوسط التجويد</div>
+              </div>
+              <div class="text-2xl font-bold">{{averageTajweed || 82}}</div>
+            </div>
+          </div>
+        </div>
+    
+        <!-- New Session Section -->
+        <div class="bg-white rounded-xl border border-teal-100 p-6 shadow-sm mb-6">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div class="flex items-center">
+              <i class="pi pi-book-open text-teal-700 mr-3 text-2xl"></i>
+              <h3 class="text-xl font-bold text-teal-900">تسجيل جلسة قراءة جديدة</h3>
+            </div>
+            <div class="flex gap-2 items-center bg-teal-50 px-3 py-2 rounded-lg border border-teal-200">
+              <span class="text-sm text-teal-700 font-medium">تاريخ الجلسة:</span>
+              <p-calendar [(ngModel)]="sessionDate" [showIcon]="true" placeholder="اختر التاريخ"
+                styleClass="p-calendar-sm border-teal-300 bg-white" inputStyleClass="text-teal-800"
+                dateFormat="yy/mm/dd"></p-calendar>
+            </div>
+          </div>
+    
+          <form (ngSubmit)="addSession()">
+            <!-- Session Details -->
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-teal-50 p-4 rounded-lg border border-teal-200">
+              <!-- Session Type -->
+              <div>
+                <label class="block text-sm font-medium text-teal-700 mb-2">نوع الجلسة</label>
+                <p-dropdown [options]="sessionTypes" [(ngModel)]="selectedSessionType" name="sessionType"
+                  placeholder="اختر نوع الجلسة" optionLabel="name" styleClass="w-full border-teal-300"
+                  [style]="{'border-color': '#0d9488'}"></p-dropdown>
+              </div>
+    
+              <!-- Surah Selection -->
+              <div>
+                <label class="block text-sm font-medium text-teal-700 mb-2">السورة</label>
+                <p-dropdown [options]="quranSurahs" [(ngModel)]="selectedSurah" name="surah" placeholder="اختر السورة"
+                  optionLabel="name" styleClass="w-full border-teal-300" [style]="{'border-color': '#0d9488'}"
+                  (onChange)="onSurahChange()">
+                  <ng-template let-surah pTemplate="item">
+                    <div class="flex items-center">
+                      <span class="ml-2">{{surah.id}}.</span>
+                      <span>{{surah.name}}</span>
+                      <span class="text-xs text-gray-500 ml-auto">{{surah.ayahCount}} آيات</span>
+                    </div>
+                  </ng-template>
+                </p-dropdown>
+              </div>
+    
+              <!-- Start Ayah -->
+              <div>
+                <label class="block text-sm font-medium text-teal-700 mb-2">بداية من آية</label>
+                <p-dropdown [options]="startAyahOptions" [(ngModel)]="selectedStartAyah" name="startAyah"
+                  placeholder="آية البداية" styleClass="w-full border-teal-300" [style]="{'border-color': '#0d9488'}"
+                  [disabled]="!selectedSurah" (onChange)="validateAyahRange()">
+                  <ng-template pTemplate="empty" *ngIf="!selectedSurah">
+                    <div class="text-gray-500 text-sm p-2">اختر السورة أولاً</div>
+                  </ng-template>
+                </p-dropdown>
+              </div>
+    
+              <!-- End Ayah -->
+              <div>
+                <label class="block text-sm font-medium text-teal-700 mb-2">نهاية عند آية</label>
+                <p-dropdown [options]="endAyahOptions" [(ngModel)]="selectedEndAyah" name="endAyah"
+                  placeholder="آية النهاية" styleClass="w-full border-teal-300" [style]="{'border-color': '#0d9488'}"
+                  [disabled]="!selectedSurah" (onChange)="validateAyahRange()">
+                  <ng-template pTemplate="empty" *ngIf="!selectedSurah">
+                    <div class="text-gray-500 text-sm p-2">اختر السورة أولاً</div>
+                  </ng-template>
+                </p-dropdown>
+                <small class="text-red-500" *ngIf="ayahRangeError">
+                  يجب أن تكون آية النهاية أكبر من أو تساوي آية البداية
+                </small>
+              </div>
+            </div>
+    
+            <!-- Quality and Status -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-teal-700 mb-2">جودة الجلسة</label>
+                  <p-dropdown [options]="qualityOptions" [(ngModel)]="selectedQuality" name="quality"
+                    placeholder="التقييم" styleClass="w-full border-teal-300"
+                    [style]="{'border-color': '#0d9488'}"></p-dropdown>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-teal-700 mb-2">الحالة</label>
+                  <p-dropdown [options]="statusOptions" [(ngModel)]="selectedStatus" name="status"
+                    placeholder="حالة الجلسة" styleClass="w-full border-teal-300"
+                    [style]="{'border-color': '#0d9488'}"></p-dropdown>
+                </div>
+              </div>
+            </div>
+    
+            <!-- Reading Preview -->
+            <div *ngIf="selectedSurah && selectedStartAyah && selectedEndAyah"
+              class="mb-6 bg-teal-50 border border-teal-200 p-4 rounded-lg">
+              <div class="flex items-center mb-3">
+                <i class="pi pi-info-circle text-teal-700 mr-2"></i>
+                <h4 class="text-base font-semibold text-teal-900">ملخص القراءة للمجموعة</h4>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div class="bg-white p-3 rounded-lg border border-teal-200">
+                  <div class="text-xs text-teal-600 mb-1">السورة</div>
+                  <div class="font-medium text-teal-900">{{ selectedSurah.name }}</div>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-teal-200">
+                  <div class="text-xs text-teal-600 mb-1">نطاق الآيات</div>
+                  <div class="font-medium text-teal-900">
+                    {{ selectedStartAyah }} - {{ selectedEndAyah }}
+                  </div>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-teal-200">
+                  <div class="text-xs text-teal-600 mb-1">عدد الآيات</div>
+                  <div class="font-medium text-teal-900">{{ selectedEndAyah - selectedStartAyah + 1 }}</div>
+                </div>
+              </div>
+            </div>
+    
+            <!-- Attendance Section -->
+            <div class="mt-6">
+              <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+                <h4 class="text-base font-semibold text-teal-900">تسجيل الحضور</h4>
+                <div class="flex gap-2">
+                  <button pButton icon="pi pi-check" label="تحديد الكل" type="button"
+                    class="p-button-sm p-button-outlined border-teal-300 text-teal-700 hover:bg-teal-50"
+                    (click)="selectAllStudents(true)"></button>
+                  <button pButton icon="pi pi-times" label="إلغاء تحديد الكل" type="button"
+                    class="p-button-sm p-button-outlined border-teal-300 text-teal-700 hover:bg-teal-50"
+                    (click)="selectAllStudents(false)"></button>
+                </div>
+              </div>
+    
+              <p-table [value]="students" styleClass="p-datatable-sm" [paginator]="true" [rows]="5" [rowHover]="true"
+                [responsive]="true" class="border border-teal-200 rounded-lg overflow-hidden"
+                [(selection)]="selectedStudents" dataKey="id">
+                <ng-template pTemplate="header">
+                  <tr class="bg-teal-50">
+                    <th style="width: 3rem" class="border-r border-teal-200">
+                      <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
+                    <th class="border-r border-teal-200 text-teal-800">الطالب</th>
+                    <th class="border-r border-teal-200 text-teal-800">الجودة</th>
+                    <th class="text-teal-800">ملاحظات</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-student let-i="rowIndex">
+                  <tr class="border-b border-teal-100 hover:bg-teal-50">
+                    <td class="border-r border-teal-100">
+                      <p-tableCheckbox [value]="student"></p-tableCheckbox>
+                    </td>
+                    <td class="border-r border-teal-100">
+                      <div class="flex items-center">
+                        <div
+                          class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center mr-2 text-teal-700 font-medium">
+                          {{student.name.charAt(0)}}
+                        </div>
+                        <span class="text-teal-900">{{student.name}}</span>
+                      </div>
+                    </td>
+                    <td class="border-r border-teal-100">
+                      <p-rating [(ngModel)]="student.rating" cancel="false" stars="5"
+                        styleClass="[&>.pi-star]:text-teal-300 [&>.pi-star-fill]:text-teal-500"
+                        [style]="{'direction': 'ltr'}"></p-rating>
+                    </td>
+                    <td>
+                      <div class="flex gap-1">
+                        <input pInputText [(ngModel)]="student.notes" name="notes-{{student.id}}"
+                          placeholder="ملاحظات القراءة"
+                          class="w-full border-teal-300 text-sm focus:border-teal-400 focus:ring-1 focus:ring-teal-100">
+                        <button pButton icon="pi pi-comment" type="button"
+                          class="p-button-rounded p-button-sm p-button-text text-teal-700 hover:bg-teal-100"
+                          pTooltip="إضافة ملاحظات" tooltipPosition="top"></button>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="4" class="text-center py-4 text-teal-700">
+                      لا يوجد طلاب في هذه المجموعة
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+    
+            <!-- General Notes -->
+            <div class="mt-6">
+              <div class="flex items-center mb-2">
+                <i class="pi pi-pencil text-teal-700 mr-2"></i>
+                <h4 class="text-base font-semibold text-teal-900">ملاحظات عامة للمجموعة</h4>
+              </div>
+              <textarea pInputTextarea [(ngModel)]="generalNotes" name="generalNotes" rows="3"
+                placeholder="أضف ملاحظات عامة حول أداء المجموعة في هذه الجلسة..."
+                class="w-full border-teal-300 text-sm focus:border-teal-400 focus:ring-1 focus:ring-teal-100 rounded-lg"></textarea>
+            </div>
+    
+            <!-- Action Buttons -->
+            <div class="mt-8 flex flex-col sm:flex-row justify-end gap-3">
+              <button pButton icon="pi pi-times" label="إلغاء" type="button"
+                class="p-button-outlined border-teal-300 text-teal-700 hover:bg-teal-50" (click)="resetForm()"></button>
+              <button pButton icon="pi pi-save" label="حفظ جلسة القراءة" type="submit"
+                class="bg-gradient-to-l from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 border-teal-700"
+                [disabled]="!isFormValid()"></button>
+            </div>
+          </form>
+        </div>
+    
+        <!-- Reading Sessions History -->
+        <div class="bg-white rounded-xl border border-teal-100 p-6 shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-teal-700">سجل جلسات القراءة</h3>
+            <div class="flex gap-2">
+              <p-dropdown [options]="historyFilterOptions" placeholder="تصفية حسب" [(ngModel)]="selectedHistoryFilter"
+                styleClass="w-40 border-teal-300" (onChange)="filterReadingHistory()"></p-dropdown>
+              <p-calendar [(ngModel)]="historyDateRange" selectionMode="range" [readonlyInput]="true"
+                placeholder="نطاق التاريخ" [showIcon]="true" (onSelect)="onDateRangeChange($event)"
+                styleClass="border-teal-300"></p-calendar>
+            </div>
+          </div>
+    
+          <p-table [value]="readingSessions" styleClass="p-datatable-sm" [paginator]="true" [rows]="5" [rowHover]="true"
+            [globalFilterFields]="['date', 'sessionType', 'surahName']" [rowsPerPageOptions]="[5,10,20]"
+            [loading]="loadingSessions">
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="date" style="min-width: 120px; text-align: center;">
+                  التاريخ <p-sortIcon field="date"></p-sortIcon>
+                </th>
+                <th pSortableColumn="sessionType" style="text-align: center;">
+                  نوع الجلسة <p-sortIcon field="sessionType"></p-sortIcon>
+                </th>
+                <th pSortableColumn="surahName" style="text-align: center;">
+                  السورة والآيات <p-sortIcon field="surahName"></p-sortIcon>
+                </th>
+                <th pSortableColumn="sessionStatus" style="text-align: center;">
+                  الحالة <p-sortIcon field="sessionStatus"></p-sortIcon>
+                </th>
+                <th style="text-align: center;">الحضور</th>
+                <th style="min-width: 140px; text-align: center;">إجراءات</th>
+              </tr>
+            </ng-template>
+    
+            <ng-template pTemplate="body" let-session>
+              <tr>
+                <td class="text-center">{{ session.date | date: 'yyyy/MM/dd' }}</td>
+                <td class="text-center">
+                  <span [ngClass]="{
+              'bg-blue-100 text-blue-800': session.sessionType === 'حفظ',
+              'bg-green-100 text-green-800': session.sessionType === 'مراجعة',
+              'bg-purple-100 text-purple-800': session.sessionType === 'تسميع'
+            }" class="px-2 py-1 rounded-full text-xs">
+                    {{ session.sessionType }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span class="font-medium">{{ session.surahName }}</span>
+                  <span class="text-sm text-gray-600">({{ session.startAyah }}-{{ session.endAyah }})</span>
+                </td>
+                <td class="text-center">
+                  <select [(ngModel)]="selectedStatus" name="status" required>
+  <option *ngFor="let option of statusOptions" [ngValue]="option">
+    {{option.label}}
+  </option>
+</select>
+
+                  <!-- <span
+[ngClass]="{
+'bg-green-100 text-green-800': session.sessionStatus === 'completed',
+'bg-yellow-100 text-yellow-800': session.sessionStatus === 'incomplete',
+'bg-red-100 text-red-800': session.sessionStatus === 'cancelled'
+}"
+class="px-2 py-1 rounded-full text-xs">
+{{ getStatusLabel(session.sessionStatus) }}
+</span> -->
+                  <!-- <span [ngClass]="{
+              'bg-green-100 text-green-800': session.sessionStatus === 'مكتملة',
+              'bg-yellow-100 text-yellow-800': session.sessionStatus === 'غير مكتملة',
+              'bg-red-100 text-red-800': session.sessionStatus === 'ملغاة'
+            }" class="px-2 py-1 rounded-full text-xs">
+                    {{ session.sessionStatus }}
+                  </span> -->
+                </td>
+                <td class="text-center">
+                  <div class="flex justify-center">
+                    <span class="text-teal-700">{{ session.attendedStudents }}/{{ session.totalStudents }}</span>
+                    <span class="text-xs text-gray-500 mr-1">طالب</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="flex justify-center gap-2">
+                    <button pButton icon="pi pi-eye" pTooltip="عرض التفاصيل"
+                      class="p-button-rounded p-button-sm p-button-text text-teal-600 hover:bg-teal-100"
+                      (click)="viewSessionDetails(session)"></button>
+                    <button pButton icon="pi pi-pencil" pTooltip="تعديل"
+                      class="p-button-rounded p-button-sm p-button-text text-blue-600 hover:bg-blue-100"
+                      (click)="editSession(session)"></button>
+                    <button pButton icon="pi pi-trash" pTooltip="حذف"
+                      class="p-button-rounded p-button-sm p-button-text text-red-600 hover:bg-red-100"
+                      (click)="confirmDeleteSession(session)"></button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+    
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6" class="text-center py-6 text-teal-700">
+                  <i class="pi pi-book text-2xl mb-2 text-teal-400"></i>
+                  <p class="text-lg">لا توجد جلسات مسجلة</p>
+                  <p class="text-sm text-gray-500 mt-1">يمكنك تسجيل جلسة جديدة باستخدام النموذج أعلاه</p>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+    
+          <!-- Session Details Dialog ---------------------->
+    
+          <p-dialog header="تفاصيل الجلسة" [(visible)]="displaySessionDetails"
+            [style]="{width: '75vw', 'max-width': '1200px'}" [modal]="true" [dismissableMask]="true"
+            [breakpoints]="{'960px': '90vw', '640px': '95vw'}" [draggable]="false" [resizable]="false">
+    
+            <div *ngIf="selectedSession" class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-2">
+              <!-- Session Information Card -->
+              <div
+                class="lg:col-span-1 bg-gradient-to-br from-teal-50 to-teal-100 p-6 rounded-xl shadow-sm border border-teal-200">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-xl font-bold text-teal-900">معلومات الجلسة</h4>
+                  <span class="px-3 py-1 rounded-full text-xs font-medium" [ngClass]="{
+          'bg-green-100 text-green-800': selectedSession.sessionStatus === 'مكتملة',
+          'bg-yellow-100 text-yellow-800': selectedSession.sessionStatus === 'غير مكتملة',
+          'bg-red-100 text-red-800': selectedSession.sessionStatus === 'ملغاة'
+             }">
+                    {{selectedSession.sessionStatus}}
+                  </span>
+                </div>
+    
+                <div class="space-y-4">
+                  <div class="flex items-center gap-3">
+                    <i class="pi pi-calendar text-teal-600"></i>
+                    <div>
+                      <p class="text-sm text-gray-600 mb-1">التاريخ</p>
+                      <p class="font-medium text-lg text-teal-900">
+                        {{selectedSession.date | date: 'yyyy/MM/dd'}}
+                      </p>
+                    </div>
+                  </div>
+    
+                  <div class="flex items-center gap-3">
+                    <i class="pi pi-book text-teal-600"></i>
+                    <div>
+                      <p class="text-sm text-gray-600 mb-1">نوع الجلسة</p>
+                      <p class="font-medium text-lg text-teal-900">
+                        {{selectedSession.sessionType}}
+                      </p>
+                    </div>
+                  </div>
+    
+                  <div class="flex items-center gap-3">
+                    <i class="pi pi-star text-teal-600"></i>
+                    <div>
+                      <p class="text-sm text-gray-600 mb-1">الجودة</p>
+                      <p class="font-medium text-lg text-teal-900">
+                        {{selectedSession.quality}}
+                        <span class="text-amber-500 ml-1">
+                          <i class="pi pi-star-fill" *ngFor="let i of [1,2,3,4,5]"
+                            [ngClass]="{'text-gray-300': i > getQualityStars(selectedSession.quality)}"></i>
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+    
+                  <div class="border-t border-teal-200 pt-4 mt-2">
+                    <div class="flex items-center gap-3">
+                      <i class="pi pi-file text-teal-600"></i>
+                      <div>
+                        <p class="text-sm text-gray-600 mb-1">السورة</p>
+                        <p class="font-medium text-lg text-teal-900">
+                          {{selectedSession.surahName}}
+                        </p>
+                      </div>
+                    </div>
+    
+                    <div class="grid grid-cols-2 gap-4 mt-3">
+                      <div>
+                        <p class="text-sm text-gray-600 mb-1">الآيات</p>
+                        <p class="font-medium text-base text-teal-900 bg-white p-2 rounded-lg border border-teal-200">
+                          {{selectedSession.startAyah}} - {{selectedSession.endAyah}}
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-600 mb-1">عدد الآيات</p>
+                        <p class="font-medium text-base text-teal-900 bg-white p-2 rounded-lg border border-teal-200">
+                          {{selectedSession.endAyah - selectedSession.startAyah + 1}}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+    
+              <!-- Attendance Section -->
+              <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border border-teal-100 overflow-hidden">
+                  <div
+                    class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border-b border-teal-100">
+                    <h4 class="text-xl font-bold text-teal-900 mb-2 md:mb-0">سجل الحضور والغياب</h4>
+    
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-teal-700">
+                        <span class="text-green-600">{{getAttendedCount(selectedSession.attendance)}}</span> حاضر
+                        / <span class="text-red-600">{{getAbsentCount(selectedSession.attendance)}}</span> غائب
+                      </span>
+                      <p-tag severity="success"
+                        value="نسبة حضور {{getAttendancePercentage(selectedSession.attendance)}}%"></p-tag>
+                    </div>
+                  </div>
+    
+                  <div class="p-2">
+                    <p-table #dt [value]="selectedSession.attendance" styleClass="p-datatable-striped p-datatable-sm"
+                      [rows]="10" [paginator]="true" [rowsPerPageOptions]="[5,10,20]"
+                      [globalFilterFields]="['studentName', 'attended']">
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th pSortableColumn="studentName" style="width: 35%; font-size: 1rem;">الطالب
+                            <p-sortIcon field="studentName"></p-sortIcon>
+                          </th>
+                          <th pSortableColumn="attended" style="width: 20%; font-size: 1rem;">الحضور
+                            <p-sortIcon field="attended"></p-sortIcon>
+                          </th>
+                          <th style="width: 30%; font-size: 1rem;">التقييم</th>
+                          <th style="width: 15%; font-size: 1rem;">ملاحظات</th>
+                        </tr>
+                        <tr>
+                          <th colspan="4">
+                            <div class="flex justify-between items-center">
+                              <span class="p-input-icon-left w-full max-w-md">
+                                <i class="pi pi-search"></i>
+                                <input pInputText type="text" (input)="dt.filterGlobal($event.target, 'contains')"
+                                  placeholder="ابحث عن طالب..." class="w-full" />
+                              </span>
+                              <p-dropdown [options]="attendanceFilters" [(ngModel)]="selectedAttendanceFilter"
+                                optionLabel="name" (onChange)="filterAttendance()" styleClass="w-40 ml-2"
+                                placeholder="تصفية حسب"></p-dropdown>
+                            </div>
+                          </th>
+                        </tr>
+                      </ng-template>
+    
+                      <ng-template pTemplate="body" let-attendance>
+                        <tr>
+                          <td class="text-lg">
+                            <div class="flex items-center">
+                              <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" [ngClass]="{
+                     'bg-green-100 text-green-800': attendance.attended,
+                     'bg-red-100 text-red-800': !attendance.attended
+                   }">
+                                <i class="pi" [ngClass]="{
+                  'pi-user': attendance.attended,
+                  'pi-user-minus': !attendance.attended
+                }"></i>
+                              </div>
+                              <span class="font-medium">{{attendance.studentName}}</span>
+                            </div>
+                          </td>
+                          <td class="text-lg">
+                            <p-tag [severity]="attendance.attended ? 'success' : 'danger'"
+                              [value]="attendance.attended ? 'حاضر' : 'غائب'"
+                              [icon]="attendance.attended ? 'pi pi-check' : 'pi pi-times'"></p-tag>
+                          </td>
+                          <td class="text-lg">
+                            <div class="flex items-center gap-2">
+                              <p-rating [ngModel]="attendance.rating" readonly="true" cancel="false" stars="5"
+                                styleClass="[&>.pi-star]:text-amber-300 [&>.pi-star-fill]:text-amber-500"
+                                [style]="{'direction': 'ltr', 'font-size': '1.2rem'}"></p-rating>
+                              <span class="text-amber-600 font-medium">{{attendance.rating}}/5</span>
+                            </div>
+                          </td>
+                          <td>
+                            <button pButton icon="pi pi-eye" type="button"
+                              class="p-button-rounded p-button-text p-button-sm text-teal-600 hover:bg-teal-100"
+                              (click)="viewStudentNotes(attendance)" pTooltip="عرض الملاحظات"
+                              tooltipPosition="top"></button>
+                          </td>
+                        </tr>
+                      </ng-template>
+    
+                      <ng-template pTemplate="emptymessage">
+                        <tr>
+                          <td colspan="4" class="text-center py-6">
+                            <i class="pi pi-users text-3xl text-teal-400 mb-3"></i>
+                            <p class="text-xl text-teal-700">لا يوجد بيانات حضور</p>
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  </div>
+                </div>
+    
+                <!-- Session Notes -->
+                <div class="mt-6 bg-white rounded-xl shadow-sm border border-teal-100 overflow-hidden">
+                  <div class="flex items-center justify-between p-4 border-b border-teal-100">
+                    <h4 class="text-xl font-bold text-teal-900">ملاحظات الجلسة</h4>
+                    <button pButton icon="pi pi-pencil" label="تعديل الملاحظات"
+                      class="p-button-sm p-button-outlined border-teal-300 text-teal-700 hover:bg-teal-50"
+                      (click)="editSessionNotes()"></button>
+                  </div>
+    
+                  <div class="p-4">
+                    <div *ngIf="selectedSession.notes; else noNotes" class="prose max-w-none">
+                      <p class="text-lg leading-relaxed text-gray-800 whitespace-pre-line">
+                        {{selectedSession.notes}}
+                      </p>
+                    </div>
+                    <ng-template #noNotes>
+                      <div class="text-center py-6 bg-teal-50 rounded-lg">
+                        <i class="pi pi-info-circle text-3xl text-teal-400 mb-3"></i>
+                        <p class="text-lg text-teal-700">لا توجد ملاحظات مسجلة لهذه الجلسة</p>
+                      </div>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
+            </div>
+    
+            <ng-template pTemplate="footer">
+              <div class="flex justify-between items-center w-full">
+                <button pButton icon="pi pi-print" label="طباعة التقرير"
+                  class="p-button-outlined border-teal-300 text-teal-700 hover:bg-teal-50"
+                  (click)="printSessionReport()"></button>
+                <div class="flex gap-2">
+                  <button pButton icon="pi pi-pencil" label="تعديل الجلسة"
+                    class="p-button-outlined border-blue-300 text-blue-700 hover:bg-blue-50"
+                    (click)="editSession(selectedSession)"></button>
+                  <button pButton icon="pi pi-times" label="إغلاق" class="p-button-text text-gray-600 hover:bg-gray-100"
+                    (click)="displaySessionDetails=false"></button>
+                </div>
+              </div>
+            </ng-template>
+          </p-dialog>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+          <!-- Absence Summary -->
+          <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-lg font-bold text-teal-700">ملخص الغياب</h4>
+              <button pButton icon="pi pi-send" label="إرسال تنبيهات"
+                class="p-button-sm p-button-outlined border-orange-300 text-orange-700 hover:bg-orange-50"
+                (click)="sendAbsenceAlerts()"></button>
+            </div>
+    
+            <p-table [value]="absenceStats" styleClass="p-datatable-sm" [paginator]="true" [rows]="5" [rowHover]="true">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th pSortableColumn="name">الطالب <p-sortIcon field="name"></p-sortIcon></th>
+                  <th pSortableColumn="absenceCount">عدد مرات الغياب <p-sortIcon field="absenceCount"></p-sortIcon></th>
+                  <th pSortableColumn="absenceRate">نسبة الغياب <p-sortIcon field="absenceRate"></p-sortIcon></th>
+                  <th pSortableColumn="lastAbsenceDate">آخر غياب <p-sortIcon field="lastAbsenceDate"></p-sortIcon></th>
+                  <th>إجراءات</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-student>
+                <tr [ngClass]="{
+            'bg-red-50': student.absenceRate > 30, 
+            'bg-amber-50': student.absenceRate > 15 && student.absenceRate <= 30
+          }">
+                  <td>
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center mr-2">
+                        {{student.name.charAt(0)}}
+                      </div>
+                      {{student.name}}
+                    </div>
+                  </td>
+                  <td>{{student.absenceCount}}</td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <div class="w-16 bg-gray-200 rounded-full h-2">
+                        <div class="bg-red-500 h-2 rounded-full" [style.width]="student.absenceRate + '%'"></div>
+                      </div>
+                      <span>{{student.absenceRate}}%</span>
+                    </div>
+                  </td>
+                  <td>{{student.lastAbsenceDate | date: 'yyyy/MM/dd'}}</td>
+                  <td>
+                    <div class="flex gap-1">
+                      <button pButton icon="pi pi-history" pTooltip="سجل الغياب"
+                        class="p-button-rounded p-button-sm p-button-text text-teal-600 hover:bg-teal-100"
+                        (click)="viewAbsenceHistory(student)"></button>
+                      <button pButton icon="pi pi-comment" pTooltip="إضافة ملاحظة"
+                        class="p-button-rounded p-button-sm p-button-text text-blue-600 hover:bg-blue-100"
+                        (click)="addAbsenceNote(student)"></button>
+                      <button pButton icon="pi pi-phone" pTooltip="اتصال بالولي"
+                        class="p-button-rounded p-button-sm p-button-text text-purple-600 hover:bg-purple-100"
+                        (click)="contactGuardian(student)"></button>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-teal-700">
+                    لا يوجد غياب مسجل
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+    
+    
+    
+
+
+
+    </p-tabView>
+  </div>

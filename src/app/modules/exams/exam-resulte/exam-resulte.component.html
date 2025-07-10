@@ -1,0 +1,457 @@
+<div class="exam-results-container" dir="rtl">
+    <div class="exam-results-container min-h-screen bg-gray-50">
+        <!-- Header Section -->
+        <div class="header-section bg-gradient-to-r from-emerald-600 to-green-700 text-white p-6 shadow-lg">
+            <div class="container mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                            <i class="pi pi-chart-bar"></i>
+                            نظام إدارة النتائج
+                        </h1>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+                        <span class="text-sm bg-white/20 px-4 py-2 rounded-full flex items-center">
+                            <i class="pi pi-calendar mr-2"></i>
+                            {{currentDate | date:'dd/MM/yyyy'}}
+                        </span>
+                        <span class="text-sm bg-white/20 px-4 py-2 rounded-full flex items-center">
+                            <i class="pi pi-user mr-2"></i>
+                            {{currentUser}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Section -->
+        <div class="content-section container mx-auto p-4 md:p-6">
+            <!-- Exam Selection & Filter -->
+            <div class="filter-section bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-6"
+                *ngIf="!selectedExam">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="pi pi-search mr-2 text-emerald-600"></i>
+                    اختيار الامتحان
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-field">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">المجموعة</label>
+
+                        <p-dropdown id="groupSelect" [options]="groups" [(ngModel)]="selectedGroupId"
+                            (onChange)="onGroupChange()" optionLabel="groupName" optionValue="groupID"
+                            [showClear]="true" [filter]="true" filterBy="groupName" placeholder="اختر المجموعة"
+                             [disabled]="loadingGroups" [virtualScroll]="groups.length > 50"
+                            [virtualScrollItemSize]="34">
+
+                            <ng-template pTemplate="empty">
+                                <div class="p-2 text-right">
+                                    {{loadingGroups ? 'جاري تحميل المجموعات...' : 'لا توجد مجموعات متاحة'}}
+                                </div>
+                            </ng-template>
+
+                            <ng-template let-group pTemplate="item">
+                                <div class="flex align-items-center">
+                                    <div>{{group.groupName}}</div>
+                                    <div class="ml-2 text-sm text-gray-500">
+                                        ({{group.groupID}})
+                                    </div>
+                                </div>
+                            </ng-template>
+
+                            <ng-template pTemplate="footer" *ngIf="groups.length > 10">
+                                <div class="p-2 text-right text-sm">
+                                    {{groups.length}} مجموعة متاحة
+                                </div>
+                            </ng-template>
+                        </p-dropdown>
+                    </div>
+
+                    <div class="p-field">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">الامتحان</label>
+
+                        <p-dropdown id="examSelect" [options]="exams" [(ngModel)]="selectedExamId"
+                            (onChange)="onExamSelect()" optionLabel="examName" optionValue="id" [showClear]="true"
+                            [filter]="true" filterBy="title" placeholder="اختر الامتحان" [disabled]="loadingExams">
+
+                            <ng-template let-exam pTemplate="item">
+                                <div>{{exam.examName}}</div>
+                            </ng-template>
+
+                            <ng-template pTemplate="empty">
+                                <div class="p-2">
+                                    {{loadingExams ? 'جاري التحميل...' : 'لا توجد امتحانات متاحة'}}
+                                </div>
+                            </ng-template>
+                        </p-dropdown>
+
+                        <p-skeleton *ngIf="loadingExams" height="3rem" width="100%"></p-skeleton>
+                    </div>
+
+                    <div class="flex items-end">
+                        <button pButton icon="pi pi-search" label="عرض النتائج"
+                            class="bg-emerald-600 hover:bg-emerald-700 w-full" [disabled]="!selectedExamId">
+                        </button>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- (click)="loadExamResults()" -->
+            <!-- Results Header -->
+            <div class="results-header bg-emerald-50 p-5 rounded-xl border border-emerald-100 shadow-sm mb-6"
+                *ngIf="selectedExam">
+                <div class="flex flex-wrap justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+                            <i class="pi pi-chart-bar mr-2 text-emerald-600"></i>
+                            نتائج: {{selectedExam.title}}
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+                            <div class="text-sm bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                <span class="text-gray-500">المجموعة:</span>
+                                <span class="font-medium">{{selectedExam.groupName}}</span>
+                            </div>
+                            <div class="text-sm bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                <span class="text-gray-500">التاريخ:</span>
+                                <span class="font-medium">{{selectedExam.ExamDate | date:'dd/MM/yyyy'}}</span>
+                            </div>
+                            <div class="text-sm bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                <span class="text-gray-500">الدرجة الكاملة:</span>
+                                <span class="font-medium">{{selectedExam.totaldegree}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button pButton icon="pi pi-arrow-right" label="العودة للامتحانات"
+                            class="bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50 p-3 rounded-lg shadow-sm"
+                            (click)="backToExams()"></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Statistics -->
+            <div class="results-stats grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" *ngIf="selectedExam && examStats">
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="text-gray-500 text-sm mb-2">إجمالي الطلاب</div>
+                    <div class="text-2xl font-bold text-gray-800">{{examStats.totalResults}}</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="text-gray-500 text-sm mb-2">متوسط الدرجات</div>
+                    <div class="text-2xl font-bold text-emerald-600">{{examStats.averageScore | number:'1.1-1'}}</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="text-gray-500 text-sm mb-2">أعلى درجة</div>
+                    <div class="text-2xl font-bold text-emerald-600">{{examStats.highestScore}}</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="text-gray-500 text-sm mb-2">أدنى درجة</div>
+                    <div class="text-2xl font-bold text-red-500">{{examStats.lowestScore}}</div>
+                </div>
+            </div>
+
+            <!-- Score Distribution Chart -->
+            <div class="distribution-chart bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6"
+                *ngIf="selectedExam && examResults.length">
+                <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-4">
+                    <i class="pi pi-chart-line mr-2 text-emerald-600"></i>
+                    توزيع الدرجات
+                </h3>
+                <div class="chart-container" style="height: 300px;">
+                    <p-chart type="bar" [data]="scoreDistributionData" [options]="chartOptions"></p-chart>
+                </div>
+            </div>
+
+            <!-- Pass/Fail Pie Chart -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6" *ngIf="selectedExam && examResults.length">
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center mb-4">
+                        <i class="pi pi-chart-pie mr-2 text-emerald-600"></i>
+                        نسبة النجاح/الرسوب
+                    </h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <p-chart type="pie" [data]="passFailData" [options]="pieChartOptions"></p-chart>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center mb-4">
+                        <i class="pi pi-chart-pie mr-2 text-emerald-600"></i>
+                        توزيع التقديرات
+                    </h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <p-chart type="doughnut" [data]="gradesDistributionData" [options]="pieChartOptions"></p-chart>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Students -->
+            <div class="top-students bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6"
+                *ngIf="selectedExam && examResults.length > 0">
+                <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-4">
+                    <i class="pi pi-star mr-2 text-emerald-600"></i>
+                    الطلاب المتفوقون
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div *ngFor="let student of topStudents; let i = index"
+                        class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 flex items-center">
+                        <div
+                            class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg font-bold mr-3">
+                            {{i+1}}</div>
+                        <div>
+                            <div class="font-medium">{{student.studentName}}</div>
+                            <div class="text-sm text-gray-500">{{student.score}} / {{selectedExam.totaldegree}}
+                                ({{(student.score / selectedExam.totaldegree * 100).toFixed(1)}}%)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="results-table bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+                            <i class="pi pi-users mr-2 text-emerald-600"></i>
+                            نتائج الطلاب
+                        </h3>
+                        <p class="text-sm text-gray-500 mt-1">إدارة درجات ونتائج الطلاب</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button pButton icon="pi pi-download" label="تصدير Excel"
+                            class="bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50"
+                            (click)="exportExcel()"></button>
+                        <button pButton icon="pi pi-print" label="طباعة النتائج"
+                            class="bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50"
+                            (click)="printResults()"></button>
+                        <button pButton icon="pi pi-search" label="البحث المتقدم"
+                            class="bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50"
+                            (click)="showAdvancedSearch = !showAdvancedSearch"></button>
+                    </div>
+                </div>
+
+                <!-- Advanced Search Panel -->
+                <div class="advanced-search-panel bg-gray-50 p-4 rounded-lg mb-6" *ngIf="showAdvancedSearch">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-field">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">اسم الطالب</label>
+                            <input type="text" pInputText [(ngModel)]="filters.studentName" class="w-full">
+                        </div>
+                        <!-- <div class="p-field">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">رقم الهوية</label>
+                            <input type="text" pInputText [(ngModel)]="filters.studentCode" class="w-full">
+                        </div> -->
+                        <div class="p-field">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">التقدير</label>
+                            <p-dropdown [options]="gradeOptions" [(ngModel)]="filters.grade" placeholder="اختر التقدير"
+                                styleClass="w-full"></p-dropdown>
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-4">
+                        <button pButton label="إلغاء الفلتر" icon="pi pi-times"
+                            class="p-button-outlined p-button-danger mr-2" (click)="resetFilters()"></button>
+                        <button pButton label="تطبيق" icon="pi pi-filter" class="bg-emerald-600 hover:bg-emerald-700"
+                            (click)="applyFilters()"></button>
+                    </div>
+                </div>
+
+                <p-table [value]="filteredResults" [paginator]="true" [rows]="10" [loading]="loadingResults"
+                    [rowsPerPageOptions]="[5,10,20]" styleClass="results-table" [rowHover]="true"
+                    [globalFilterFields]="['studentName', 'studentCode']">
+                    <ng-template pTemplate="caption">
+                        <div class="flex justify-between">
+                            <button pButton label="إضافة طلاب" icon="pi pi-plus"
+                                class="bg-emerald-600 hover:bg-emerald-700" (click)="showAddStudentsDialog()"></button>
+                            <span class="p-input-icon-left">
+                                <i class="pi pi-search"></i>
+                                <input pInputText type="text" placeholder="بحث سريع..." [(ngModel)]="globalFilterValue"
+                                    (input)="applyGlobalFilter()" />
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>اسم الطالب</th>
+                            <!-- <th>رقم الهوية</th> -->
+                            <th class="text-center">الدرجة</th>
+                            <th class="text-center">النسبة</th>
+                            <th class="text-center">التقدير</th>
+                            <th>تاريخ التقديم</th>
+                            <th>ملاحظات</th>
+                            <th class="text-center">إجراءات</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-result let-i="rowIndex">
+                        <tr [ngClass]="{'bg-red-50': (result.score / (selectedExam?.totaldegree ?? 1)) < 0.5}">
+                            <td class="text-center">{{i + 1}}</td>
+                            <td>
+                                <div class="font-medium">{{result.studentName}}</div>
+                                <div class="text-xs text-gray-500" *ngIf="result.studentId">ID: {{result.studentId}}
+                                </div>
+                            </td>
+                            <td>{{result.studentCode}}</td>
+                            <td class="text-center">
+                                <input type="number" pInputText [(ngModel)]="result.score"
+                                    [max]="selectedExam?.totaldegree ?? 0" min="0"
+                                    class="w-20 text-center border border-gray-300 rounded-lg">
+                            </td>
+                            <td class="text-center">
+                                <div class="relative pt-1">
+                                    <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
+                                        <div [style.width]="(result.score / (selectedExam?.totaldegree ?? 1) * 100) + '%'"
+                                            [ngClass]="{'bg-red-500': result.score / (selectedExam?.totaldegree ?? 1) < 0.5,
+                                      'bg-yellow-500': result.score / (selectedExam?.totaldegree ?? 1) >= 0.5 && result.score / (selectedExam?.totaldegree ?? 1) < 0.7,
+                                      'bg-emerald-500': result.score / (selectedExam?.totaldegree ?? 1) >= 0.7}"
+                                            class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center">
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-1">
+                                        {{(result.score / (selectedExam?.totaldegree ?? 1) * 100).toFixed(1)}}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <p-tag [value]="getGrade(result.score)" [rounded]="true"
+                                    [severity]="getGradeSeverity(result.score)"></p-tag>
+                            </td>
+                            <td>
+                                <p-calendar [(ngModel)]="result.submittedDate" [showIcon]="true" [showButtonBar]="true"
+                                    dateFormat="dd/mm/yy" styleClass="w-full"></p-calendar>
+                            </td>
+                            <td>
+                                <textarea pInputTextarea [(ngModel)]="result.comments"
+                                    class="w-full border border-gray-300 rounded-lg" rows="1"></textarea>
+                            </td>
+                            <td class="text-center">
+                                <div class="flex gap-1 justify-center">
+                                    <button pButton icon="pi pi-save" pTooltip="حفظ" tooltipPosition="top"
+                                        class="p-button-rounded p-button-success p-button-sm"
+                                        (click)="saveResult(result)"></button>
+                                    <button pButton icon="pi pi-trash" pTooltip="حذف" tooltipPosition="top"
+                                        class="p-button-rounded p-button-danger p-button-sm"
+                                        (click)="confirmDelete(result)"></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="text-center py-8">
+                                <div class="flex flex-col items-center">
+                                    <i class="pi pi-users text-5xl text-gray-300 mb-3"></i>
+                                    <span class="text-gray-500">لا توجد نتائج متاحة</span>
+                                    <button pButton label="إضافة طلاب" icon="pi pi-plus"
+                                        class="bg-emerald-600 hover:bg-emerald-700 mt-4"
+                                        (click)="showAddStudentsDialog()"></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="summary">
+                        <div class="text-right text-gray-600">
+                            إجمالي النتائج: {{filteredResults.length}}
+                        </div>
+                    </ng-template>
+                </p-table>
+
+                <div class="flex justify-end mt-6">
+                    <button pButton icon="pi pi-save" label="حفظ الكل"
+                        class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-lg shadow-sm"
+                        (click)="saveAllResults()"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Students Dialog -->
+    <p-dialog [(visible)]="displayAddStudentsDialog" [style]="{width: '70vw'}" header="إضافة طلاب" [modal]="true"
+        styleClass="p-fluid" [draggable]="false" [resizable]="false">
+        <div class="grid grid-cols-1 gap-4">
+            <div class="p-field">
+                <label class="block text-sm font-medium text-gray-700 mb-2">اختيار الطلاب</label>
+                <!-- <p-pickList [source]="availableStudents" [target]="selectedStudents" 
+                    sourceHeader="الطلاب المتاحون" targetHeader="الطلاب المختارون"
+                    [dragdrop]="true" [responsive]="true" [showSourceControls]="false"
+                    [showTargetControls]="false" filterBy="name">
+            <ng-template let-student pTemplate="item">
+              <div class="flex items-center p-2">
+                <i class="pi pi-user mr-2 text-emerald-600"></i>
+                <div>
+                  <div>{{student.name}}</div>
+                  <div class="text-sm text-gray-500">{{student.code}}</div>
+                </div>
+              </div>
+            </ng-template>
+          </p-pickList> -->
+                <p-table [value]="availableStudents" selectionMode="multiple" [(selection)]="selectedAvailableStudents"
+                    dataKey="code" [paginator]="true" [rows]="5" class="shadow rounded-lg">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>الطلاب المتاحون</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-student>
+                        <tr>
+                            <td class="flex items-center p-2">
+                                <i class="pi pi-user mr-2 text-emerald-600"></i>
+                                <div>
+                                    <div>{{student.name}}</div>
+                                    <div class="text-sm text-gray-500">{{student.code}}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+                <!-- Selected Students -->
+                <p-table [value]="selectedStudents" selectionMode="multiple" [(selection)]="selectedStudents"
+                    dataKey="code" [paginator]="true" [rows]="5" class="shadow rounded-lg">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>الطلاب المختارون</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-student>
+                        <tr>
+                            <td class="flex items-center p-2">
+                                <i class="pi pi-user mr-2 text-emerald-600"></i>
+                                <div>
+                                    <div>{{student.name}}</div>
+                                    <div class="text-sm text-gray-500">{{student.code}}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+            <!-- Move Buttons -->
+            <div class="flex justify-center mt-4 gap-4">
+                <button (click)="moveToSelected()"
+                    class="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600">
+                    ➡️ نقل إلى المختارون
+                </button>
+                <button (click)="moveToAvailable()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    ⬅️ إعادة إلى المتاحون
+                </button>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button pButton icon="pi pi-times" label="إلغاء" class="p-button-text"
+                (click)="displayAddStudentsDialog = false"></button>
+            <button pButton icon="pi pi-check" label="إضافة" class="bg-emerald-600 hover:bg-emerald-700"
+                (click)="addStudentsToResults()"></button>
+        </ng-template>
+    </p-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <p-confirmDialog [style]="{width: '450px'}" header="تأكيد الحذف" icon="pi pi-exclamation-triangle"
+        [dismissableMask]="true"></p-confirmDialog>
+
+    <!-- Toast -->
+    <p-toast position="top-left"></p-toast>
+</div>

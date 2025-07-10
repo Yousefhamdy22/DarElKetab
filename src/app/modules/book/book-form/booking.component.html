@@ -1,0 +1,412 @@
+<!-- booking.component.html - Pure Tailwind CSS with Emerald Theme -->
+<div class="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-4 md:p-6" dir="rtl">
+  
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+    <div class="text-center">
+      <p-progressSpinner></p-progressSpinner>
+      <p class="mt-4 text-lg text-gray-600 font-medium">جاري تحميل البيانات...</p>
+    </div>
+  </div>
+
+  <!-- Header Section -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <button 
+          (click)="navigateToBookingList()"
+          class="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors text-emerald-700 font-medium"
+          type="button">
+          <i class="pi pi-arrow-right"></i>
+          <span>العودة للقائمة</span>
+        </button>
+        <div class="w-px h-8 bg-emerald-300"></div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">إنشاء حجز جديد</h1>
+          <p class="text-gray-600 text-sm md:text-base">أدخل بيانات الطالب ومعلومات الحجز</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <button 
+          (click)="navigateToBookingCard()"
+          class="flex items-center gap-2 px-4 py-2 bg-transparent border-2 border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors font-medium"
+          type="button">
+          <i class="pi pi-id-card"></i>
+          <span>بطاقات الحجز</span>
+        </button>
+        <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-full flex items-center justify-center text-white text-xl">
+          <i class="pi pi-calendar-plus"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Form -->
+  <div class="max-w-7xl mx-auto">
+    <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="space-y-8">
+      
+      <!-- Student Information Section -->
+      <div class="bg-white rounded-xl shadow-lg border border-emerald-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-4 border-b border-emerald-200">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600">
+              <i class="pi pi-user"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-gray-800 mb-1">بيانات الطالب</h3>
+              <p class="text-sm text-gray-600">المعلومات الأساسية للطالب</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Student Name -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-user text-emerald-600"></i>
+                اسم الطالب <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="text"
+                formControlName="studentName"
+                placeholder="أدخل الاسم الكامل"
+                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-500]="studentName?.invalid && studentName?.touched"
+                [disabled]="isSubmitting">
+              <div *ngIf="studentName?.invalid && studentName?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span *ngIf="studentName?.errors?.['required']">اسم الطالب مطلوب</span>
+                <span *ngIf="studentName?.errors?.['minlength']">الاسم يجب أن يكون حرفين على الأقل</span>
+              </div>
+            </div>
+
+            <!-- Student Phone -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-phone text-emerald-600"></i>
+                رقم الهاتف <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="tel"
+                formControlName="studentPhone"
+                placeholder="05xxxxxxxx"
+                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-500]="studentPhone?.invalid && studentPhone?.touched"
+                [disabled]="isSubmitting">
+              <div *ngIf="studentPhone?.invalid && studentPhone?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span *ngIf="studentPhone?.errors?.['required']">رقم الهاتف مطلوب</span>
+                <span *ngIf="studentPhone?.errors?.['pattern']">رقم الهاتف غير صحيح (مثال: 0512345678)</span>
+              </div>
+            </div>
+
+            <!-- Gender -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-users text-emerald-600"></i>
+                الجنس <span class="text-red-500">*</span>
+              </label>
+              <div class="flex gap-4">
+                <div *ngFor="let gender of genderOptions" class="flex items-center gap-2">
+                  <input 
+                    type="radio" 
+                    [id]="gender.value"
+                    [value]="gender.value"
+                    formControlName="studentGender"
+                    class="w-4 h-4 text-emerald-600 border-emerald-300 focus:ring-emerald-500"
+                    [disabled]="isSubmitting">
+                  <label [for]="gender.value" class="text-sm font-medium text-gray-700 cursor-pointer">{{ gender.label }}</label>
+                </div>
+              </div>
+              <div *ngIf="studentGender?.invalid && studentGender?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>يرجى اختيار الجنس</span>
+              </div>
+            </div>
+
+            <!-- Education Stage -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-graduation-cap text-emerald-600"></i>
+                المرحلة الدراسية <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="educationStage" 
+                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-500]="educationStage?.invalid && educationStage?.touched"
+                [disabled]="isSubmitting">
+                <option value="">اختر المرحلة</option>
+                <option *ngFor="let stage of educationStages" [value]="stage.value">
+                  {{ stage.label }}
+                </option>
+              </select>
+              <div *ngIf="educationStage?.invalid && educationStage?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>المرحلة الدراسية مطلوبة</span>
+              </div>
+            </div>
+
+            <!-- Grade -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-bookmark text-emerald-600"></i>
+                الصف <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="grade" 
+                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-500]="grade?.invalid && grade?.touched"
+                [disabled]="isSubmitting">
+                <option value="">اختر الصف</option>
+                <option *ngFor="let grade of grades" [value]="grade.value">
+                  {{ grade.label }}
+                </option>
+              </select>
+              <div *ngIf="grade?.invalid && grade?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>الصف مطلوب</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Information Section -->
+      <div class="bg-white rounded-xl shadow-lg border border-emerald-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-4 border-b border-emerald-200">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600">
+              <i class="pi pi-calendar"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-gray-800 mb-1">معلومات الحجز</h3>
+              <p class="text-sm text-gray-600">تفاصيل المادة والمعلم والموعد والمبلغ</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-users text-emerald-600"></i>
+                المجموعة <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="groupId" 
+                class="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-300 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-400]="groupId?.invalid && groupId?.touched"
+                [disabled]="isSubmitting || isLoading">
+                <option value="">اختر المجموعة</option>
+                <option *ngFor="let group of groups" [value]="group.id">
+                  {{ group.name }}
+                </option>
+              </select>
+              
+              <div *ngIf="groupId?.invalid && groupId?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>المجموعة مطلوبة</span>
+              </div>
+            </div>
+
+            <!-- Teacher Selection -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-user-edit text-emerald-600"></i>
+                المعلم <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="teacherId" 
+                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-500]="teacherId?.invalid && teacherId?.touched"
+                [disabled]="isSubmitting || isLoading ">
+                <!-- <option value="">{{ !selectedSubject ? 'اختر المادة أولاً' : 'اختر المعلم' }}</option> -->
+                <option *ngFor="let teacher of availableTeachers" [value]="teacher.teacherId">
+                  {{ teacher.name }}
+                </option>
+              </select>
+              
+              <!-- Selected Teacher Info -->
+              <div *ngIf="selectedTeacher" class="mt-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-700 text-white text-sm font-semibold">
+                    {{ getInitials(selectedTeacher.name) }}
+                  </div>
+                  <div>
+                    <div class="font-semibold text-gray-800 mb-1">{{ selectedTeacher.name }}</div>
+                    <div class="text-sm text-gray-600 mb-1">{{ selectedTeacher.groupName }}</div>
+                    <div class="text-xs text-gray-500">التخصص: {{ selectedTeacher.status }}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div *ngIf="teacherId?.invalid && teacherId?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>المعلم مطلوب</span>
+              </div>
+            </div>
+
+            <!-- Date Selection -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-calendar text-emerald-600"></i>
+                التاريخ <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="date"
+                formControlName="date"
+                [min]="minDate.toISOString().split('T')[0]"
+                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-500]="date?.invalid && date?.touched"
+                [disabled]="isSubmitting">
+              <div *ngIf="date?.invalid && date?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>التاريخ مطلوب</span>
+              </div>
+            </div>
+
+            <!-- Time Selection -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-clock text-emerald-600"></i>
+                الوقت <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="timeSlot" 
+                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                [class.border-red-500]="timeSlot?.invalid && timeSlot?.touched"
+                [disabled]="isSubmitting || !selectedTeacher || !date?.value">
+                <option value="">{{ !selectedTeacher || !date?.value ? 'اختر المعلم والتاريخ أولاً' : 'اختر الوقت' }}</option>
+                <option *ngFor="let slot of availableTimeSlots" [value]="slot">
+                  {{ getTimeSlotLabel(slot) }}
+                </option>
+              </select>
+              <div *ngIf="timeSlot?.invalid && timeSlot?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>الوقت مطلوب</span>
+              </div>
+            </div>
+
+            <!-- Amount -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-money-bill text-emerald-600"></i>
+                المبلغ <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input 
+                  type="number"
+                  formControlName="amount"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  class="w-full px-4 py-3 pr-12 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  [class.border-red-500]="amount?.invalid && amount?.touched"
+                  [disabled]="isSubmitting">
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">ريال</span>
+              </div>
+              <div *ngIf="amount?.invalid && amount?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span *ngIf="amount?.errors?.['required']">المبلغ مطلوب</span>
+                <span *ngIf="amount?.errors?.['min']">المبلغ يجب أن يكون أكبر من صفر</span>
+              </div>
+            </div>
+
+            <!-- Paid Amount -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-credit-card text-emerald-600"></i>
+                المبلغ المدفوع <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input 
+                  type="number"
+                  formControlName="paidAmount"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  class="w-full px-4 py-3 pr-12 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  [class.border-red-500]="paidAmount?.invalid && paidAmount?.touched"
+                  [disabled]="isSubmitting">
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">ريال</span>
+              </div>
+              <div *ngIf="paidAmount?.invalid && paidAmount?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-circle"></i>
+                <span *ngIf="paidAmount?.errors?.['required']">المبلغ المدفوع مطلوب</span>
+                <span *ngIf="paidAmount?.errors?.['min']">المبلغ المدفوع يجب أن يكون أكبر من أو يساوي صفر</span>
+              </div>
+              
+              <!-- Remaining Amount Display -->
+              <div *ngIf="amount?.value && paidAmount?.value" class="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-amber-700 font-medium">المبلغ المتبقي:</span>
+                  <span class="text-amber-800 font-bold">{{ (amount?.value - paidAmount?.value) | number:'1.2-2':'ar-SA' }} ريال</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="space-y-2 mt-6">
+            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <i class="pi pi-comment text-emerald-600"></i>
+              ملاحظات إضافية
+            </label>
+            <textarea 
+              formControlName="notes"
+              placeholder="أضف أي متطلبات خاصة أو ملاحظات..."
+              rows="3"
+              class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+              [disabled]="isSubmitting"></textarea>
+          </div>
+        </div>
+
+
+        
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-center">
+        <div class="flex gap-4">
+          <button 
+            type="submit"
+            [disabled]="!bookingForm.valid || isSubmitting"
+            class="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
+            <p-progressSpinner 
+              *ngIf="isSubmitting" 
+              styleClass="w-4 h-4"
+              strokeWidth="4">
+            </p-progressSpinner>
+            <i *ngIf="!isSubmitting" class="pi pi-save"></i>
+            <span>{{ isSubmitting ? 'جاري الحفظ...' : 'إنشاء الحجز' }}</span>
+          </button>
+          
+          <button 
+            type="button"
+            (click)="resetForm()"
+            [disabled]="isSubmitting"
+            class="flex items-center gap-2 px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
+            <i class="pi pi-refresh"></i>
+            <span>إعادة تعيين</span>
+          </button>
+
+          <button 
+            type="button"
+            (click)="navigateToBookingList()"
+            [disabled]="isSubmitting"
+            class="flex items-center gap-2 px-6 py-3 bg-transparent border-2 border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
+            <i class="pi pi-times"></i>
+            <span>إلغاء</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Toast Messages -->
+  <p-toast position="top-center" dir="rtl"></p-toast>
+</div>

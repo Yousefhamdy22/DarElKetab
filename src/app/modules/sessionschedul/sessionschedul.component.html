@@ -1,0 +1,572 @@
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden" dir="rtl">
+  
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-emerald-200/30 to-green-300/30 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-r from-teal-200/20 to-emerald-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-green-200/10 to-emerald-200/10 rounded-full blur-2xl animate-spin duration-[20s]"></div>
+    </div>
+  
+    <!-- Loading Overlay -->
+    <div *ngIf="isLoading" class="fixed inset-0 bg-white/80 backdrop-blur-md flex items-center justify-center z-50">
+      <div class="text-center p-8 bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl border border-emerald-100">
+        <div class="relative">
+          <p-progressSpinner styleClass="w-16 h-16" strokeWidth="3" fill="transparent" animationDuration="1s"></p-progressSpinner>
+          <div class="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full animate-ping opacity-20"></div>
+        </div>
+        <p class="mt-6 text-xl text-gray-700 font-semibold">جاري تحميل الحصص...</p>
+      </div>
+    </div>
+  
+    <div class="relative z-10 p-6 md:p-8">
+      
+      <!-- Header Section -->
+      <div class="mb-12">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-6">
+            <button 
+              (click)="navigateBack()"
+              class="group flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-lg border border-emerald-200 rounded-2xl hover:bg-emerald-50 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 text-emerald-700 font-semibold"
+              type="button">
+              <i class="pi pi-arrow-right group-hover:translate-x-1 transition-transform duration-300"></i>
+              <span>العودة</span>
+            </button>
+            
+            <div class="w-px h-12 bg-gradient-to-b from-emerald-200 via-emerald-400 to-emerald-200"></div>
+            
+            <div class="space-y-2">
+              <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent">
+                إدارة جداول الحصص
+              </h1>
+              <p class="text-gray-600 text-lg font-medium">إدارة المواعيد والحصص للمجموعات التعليمية</p>
+              <div class="flex items-center gap-4 text-sm">
+                <div class="flex items-center gap-2 text-emerald-600">
+                  <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span class="font-medium">{{ totalSessions }} حصة</span>
+                </div>
+                <div class="flex items-center gap-2 text-green-600">
+                  <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span class="font-medium">{{ activeGroups }} مجموعة نشطة</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-4">
+            <button 
+              (click)="showCreateSessionDialog()"
+              class="group flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl hover:from-emerald-600 hover:to-green-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 font-semibold"
+              type="button">
+              <i class="pi pi-plus group-hover:rotate-90 transition-transform duration-300"></i>
+              <span>إضافة حصة جديدة</span>
+            </button>
+            
+            <div class="relative">
+              <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <i class="pi pi-calendar"></i>
+              </div>
+              <div class="absolute -top-1 -right-1 w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center">
+                <span class="text-white text-xs font-bold">{{ pendingSessions }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Filters and Search Section -->
+      <div class="mb-8">
+        <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl border border-emerald-100 p-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            
+            <!-- Search -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-search text-emerald-600"></i>
+                البحث
+              </label>
+              <div class="relative">
+                <input 
+                  type="text"
+                  [(ngModel)]="searchTerm"
+                  (ngModelChange)="onSearch()"
+                  placeholder="بحث في الحصص..."
+                  class="w-full px-4 py-3 pr-12 bg-white border-2 border-emerald-200 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-300">
+                <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <i class="pi pi-search text-emerald-400"></i>
+                </div>
+              </div>
+            </div>
+  
+            <!-- Group Filter -->
+            <div class="space-y-2 relative">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-users text-emerald-600"></i>
+                المجموعة
+              </label>
+              <div class="relative z-30">
+                <p-dropdown 
+                  [options]="groups" 
+                  [(ngModel)]="selectedGroupId"
+                  (onChange)="onGroupFilter()"
+                  optionLabel="name" 
+                  optionValue="id"
+                  placeholder="جميع المجموعات"
+                  styleClass="w-full custom-dropdown-green"
+                  [showClear]="true"
+                  [autoZIndex]="false"
+                  [baseZIndex]="9999">
+                </p-dropdown>
+              </div>
+            </div>
+  
+            <!-- Status Filter -->
+            <div class="space-y-2 relative">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-flag text-emerald-600"></i>
+                الحالة
+              </label>
+              <div class="relative z-30">
+                <p-dropdown 
+                  [options]="statusOptions" 
+                  [(ngModel)]="selectedStatus"
+                  (onChange)="onStatusFilter()"
+                  optionLabel="label" 
+                  optionValue="value"
+                  placeholder="جميع الحالات"
+                  styleClass="w-full custom-dropdown-green"
+                  [showClear]="true"
+                  [autoZIndex]="false"
+                  [baseZIndex]="9999">
+                </p-dropdown>
+              </div>
+            </div>
+  
+            <!-- Date Range -->
+            <div class="space-y-2 relative">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-calendar text-emerald-600"></i>
+                نطاق التاريخ
+              </label>
+              <div class="relative z-30">
+                <p-calendar 
+                  [(ngModel)]="dateRange" 
+                  (onSelect)="onDateFilter()"
+                  selectionMode="range" 
+                  placeholder="اختر الفترة"
+                  styleClass="w-full custom-calendar-green"
+                  [showIcon]="true"
+                  [autoZIndex]="false"
+                  [baseZIndex]="9999"
+                  inputStyleClass="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500">
+                </p-calendar>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Sessions Table -->
+      <!-- <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl border border-emerald-100 overflow-hidden"> -->
+        
+        <!-- Table Header -->
+        <div class="bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 px-6 py-4 border-b border-emerald-100">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white">
+                <i class="pi pi-list"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-800">جدول الحصص</h3>
+                <p class="text-sm text-gray-600">إدارة وتنظيم جميع الحصص</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                {{ filteredSessions.length || 0 }} حصة
+              </span>
+              <button 
+                (click)="exportSessions()"
+                class="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-xl hover:bg-emerald-50 transition-colors text-emerald-600 font-medium">
+                <i class="pi pi-download"></i>
+                <span>تصدير</span>
+              </button>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Table Content -->
+        <div class="overflow-x-auto">
+          <p-table 
+            [value]="filteredSessions" 
+            [loading]="isLoading"
+            [paginator]="true" 
+            [rows]="10"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="عرض {first} إلى {last} من {totalRecords} حصة"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            styleClass="modern-table-green">
+            
+            <ng-template pTemplate="header">
+              <tr class="bg-gradient-to-r from-emerald-50 to-green-50">
+                <th class="px-6 py-4 text-right font-bold text-gray-700">معلومات الحصة</th>
+                <th class="px-6 py-4 text-right font-bold text-gray-700">المجموعة</th>
+                <th class="px-6 py-4 text-right font-bold text-gray-700">المعلم</th>
+                <th class="px-6 py-4 text-right font-bold text-gray-700">التاريخ</th>
+                <th class="px-6 py-4 text-right font-bold text-gray-700">النوع</th>
+                <th class="px-6 py-4 text-right font-bold text-gray-700">الحالة</th>
+                <th class="px-6 py-4 text-right font-bold text-gray-700">الحضور</th>
+                <th class="px-6 py-4 text-center font-bold text-gray-700">الإجراءات</th>
+              </tr>
+            </ng-template>
+            
+            <ng-template pTemplate="body" let-session let-rowIndex="rowIndex">
+              <tr class="hover:bg-emerald-50/50 transition-all duration-300 border-b border-gray-100">
+                
+                <!-- Session Info -->
+                <td class="px-6 py-6">
+                  <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white font-bold">
+                      {{ rowIndex + 1 }}
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-800 text-lg">حصة رقم {{ session.sessionId }}</div>
+                      <div class="text-sm text-gray-600">{{ session.notes || 'لا توجد ملاحظات' }}</div>
+                      <div class="text-xs text-emerald-600 font-medium mt-1">
+                        <i class="pi pi-user"></i> {{ session.createdByUserName }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+  
+                <!-- Group Info -->
+                <td class="px-6 py-6">
+                  <div class="space-y-2">
+                    <div class="font-semibold text-gray-800">{{ session.groupName }}</div>
+                    <div class="text-sm text-gray-600">المجموعة رقم {{ session.groupId }}</div>
+                  </div>
+                </td>
+  
+                <!-- Teacher Info -->
+                <td class="px-6 py-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 flex items-center justify-center text-white text-sm font-bold">
+                      {{ getTeacherInitials(session.teacherName) }}
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-800">{{ session.teacherName }}</div>
+                      <div class="text-xs text-gray-500">معلم</div>
+                    </div>
+                  </div>
+                </td>
+  
+                <!-- Date -->
+                <td class="px-6 py-6">
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-gray-800 font-semibold">
+                      <i class="pi pi-calendar text-emerald-500"></i>
+                      {{ session.sessionDate | date:'dd/MM/yyyy':'ar-SA' }}
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-600">
+                      <i class="pi pi-clock text-green-500"></i>
+                      {{ session.sessionDate | date:'HH:mm':'ar-SA' }}
+                    </div>
+                  </div>
+                </td>
+  
+                <!-- Session Type -->
+                <td class="px-6 py-6">
+                  <span [ngClass]="getSessionTypeClass(session.sessionType)" 
+                        class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold">
+                    <div class="w-2 h-2 rounded-full" [ngClass]="getSessionTypeDotClass(session.sessionType)"></div>
+                    {{ getSessionTypeLabel(session.sessionType) }}
+                  </span>
+                </td>
+  
+                <!-- Status -->
+                <td class="px-6 py-6">
+                  <span [ngClass]="getStatusClass(session.status)" 
+                        class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold">
+                    <div class="w-2 h-2 rounded-full" [ngClass]="getStatusDotClass(session.status)"></div>
+                    {{ getStatusLabel(session.status) }}
+                  </span>
+                </td>
+  
+                <!-- Attendance -->
+                <td class="px-6 py-6">
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <div class="text-sm font-semibold text-gray-800">{{ session.attendanceCount }}/{{ session.totalStudents }}</div>
+                      <div class="flex-1 bg-gray-200 rounded-full h-2">
+                        <div 
+                          class="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full transition-all duration-300"
+                          [style.width.%]="session.attendancePercentage">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-xs text-gray-500">{{ session.attendancePercentage }}% حضور</div>
+                  </div>
+                </td>
+  
+                <!-- Actions -->
+                <td class="px-6 py-6">
+                  <div class="flex items-center justify-center gap-2">
+                    <button 
+                      (click)="editSession(session)"
+                      class="w-10 h-10 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-600 flex items-center justify-center transition-all duration-300 hover:scale-110"
+                      pTooltip="تعديل الحصة"
+                      tooltipPosition="top">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    
+                    <button 
+                      (click)="viewSessionDetails(session)"
+                      class="w-10 h-10 rounded-xl bg-green-100 hover:bg-green-200 text-green-600 flex items-center justify-center transition-all duration-300 hover:scale-110"
+                      pTooltip="عرض التفاصيل"
+                      tooltipPosition="top">
+                      <i class="pi pi-eye"></i>
+                    </button>
+                    
+                    <button 
+                      (click)="duplicateSession(session)"
+                      class="w-10 h-10 rounded-xl bg-teal-100 hover:bg-teal-200 text-teal-600 flex items-center justify-center transition-all duration-300 hover:scale-110"
+                      pTooltip="نسخ الحصة"
+                      tooltipPosition="top">
+                      <i class="pi pi-copy"></i>
+                    </button>
+                    
+                    <button 
+                      (click)="deleteSession(session)"
+                      class="w-10 h-10 rounded-xl bg-red-100 hover:bg-red-200 text-red-600 flex items-center justify-center transition-all duration-300 hover:scale-110"
+                      pTooltip="حذف الحصة"
+                      tooltipPosition="top">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="8" class="text-center py-12">
+                  <div class="flex flex-col items-center gap-4">
+                    <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
+                      <i class="pi pi-calendar-times text-4xl text-gray-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-xl font-semibold text-gray-600 mb-2">لا توجد حصص</h3>
+                      <p class="text-gray-500">لم يتم العثور على حصص مطابقة للبحث</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+
+  <!-- Create/Edit Session Dialog -->
+
+    <p-dialog 
+    [(visible)]="showSessionDialog" 
+    [modal]="true" 
+    [style]="{width: '90vw', maxWidth: '800px'}"
+    [draggable]="false" 
+    [resizable]="false"
+    [baseZIndex]="10000"
+    styleClass="session-dialog-green">
+    
+    <ng-template pTemplate="header">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center text-white">
+          <i class="pi" [ngClass]="isEditMode ? 'pi-pencil' : 'pi-plus'"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-800">
+            {{ isEditMode ? 'تعديل الحصة' : 'إضافة حصة جديدة' }}
+          </h3>
+          <p class="text-sm text-gray-600">{{ isEditMode ? 'تحديث معلومات الحصة' : 'إنشاء حصة تعليمية جديدة' }}</p>
+        </div>
+      </div>
+    </ng-template>
+    
+    <ng-template pTemplate="content">
+        <form [formGroup]="sessionForm" class="space-y-6 p-6">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Group Selection -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-users text-emerald-600"></i>
+                المجموعة <span class="text-red-500">*</span>
+              </label>
+              <div class="relative z-50">
+                <p-dropdown 
+                  [options]="groups" 
+                  formControlName="groupId"
+                  optionLabel="name" 
+                  optionValue="id"
+                  placeholder="اختر المجموعة"
+                  styleClass="w-full custom-dropdown-green"
+                  [autoZIndex]="false"
+                  [baseZIndex]="10001">
+                </p-dropdown>
+              </div>
+            </div>
+      
+            <!-- Session Date -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-calendar text-emerald-600"></i>
+                تاريخ الحصة <span class="text-red-500">*</span>
+              </label>
+              <div class="relative z-50">
+                <p-calendar 
+                  formControlName="sessionDate"
+                  placeholder="اختر التاريخ والوقت"
+                  styleClass="w-full custom-calendar-green"
+                  [showIcon]="true"
+                  [showTime]="true"
+                  [hourFormat]="'24'"
+                  [autoZIndex]="false"
+                  [baseZIndex]="10001">
+                </p-calendar>
+              </div>
+            </div>
+      
+            <!-- Session Type -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-tag text-emerald-600"></i>
+                نوع الحصة <span class="text-red-500">*</span>
+              </label>
+              <div class="relative z-50">
+                <p-dropdown 
+                  [options]="sessionTypeOptions" 
+                  formControlName="sessionType"
+                  optionLabel="label" 
+                  optionValue="value"
+                  placeholder="اختر نوع الحصة"
+                  styleClass="w-full custom-dropdown-green"
+                  [autoZIndex]="false"
+                  [baseZIndex]="10001">
+                </p-dropdown>
+              </div>
+            </div>
+      
+            <!-- Status -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-flag text-emerald-600"></i>
+                حالة الحصة <span class="text-red-500">*</span>
+              </label>
+              <div class="relative z-50">
+                <p-dropdown 
+                  [options]="statusOptions" 
+                  formControlName="status"
+                  optionLabel="label" 
+                  optionValue="value"
+                  placeholder="اختر الحالة"
+                  styleClass="w-full custom-dropdown-green"
+                  [autoZIndex]="false"
+                  [baseZIndex]="10001">
+                </p-dropdown>
+              </div>
+            </div>
+      
+            <!-- Stage -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-star text-emerald-600"></i>
+                المرحلة <span class="text-red-500">*</span>
+              </label>
+              <div class="relative z-50">
+                <p-dropdown 
+                  [options]="stageOptions" 
+                  formControlName="stage"
+                  optionLabel="label" 
+                  optionValue="value"
+                  placeholder="اختر المرحلة"
+                  styleClass="w-full custom-dropdown-green"
+                  [autoZIndex]="false"
+                  [baseZIndex]="10001">
+                </p-dropdown>
+              </div>
+            </div>
+      
+            <!-- Stage Level -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <i class="pi pi-chart-line text-emerald-600"></i>
+                مستوى المرحلة <span class="text-red-500">*</span>
+              </label>
+              <div class="relative z-50">
+                <p-dropdown 
+                  [options]="stageLevelOptions" 
+                  formControlName="stageLevel"
+                  optionLabel="label" 
+                  optionValue="value"
+                  placeholder="اختر مستوى المرحلة"
+                  styleClass="w-full custom-dropdown-green"
+                  [autoZIndex]="false"
+                  [baseZIndex]="10001">
+                </p-dropdown>
+              </div>
+            </div>
+          </div>
+      
+          <!-- Notes -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <i class="pi pi-file-edit text-emerald-600"></i>
+              ملاحظات الحصة
+            </label>
+            <textarea 
+              formControlName="notes"
+              placeholder="أضف ملاحظات للحصة..."
+              rows="3"
+              class="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none transition-all duration-300"></textarea>
+          </div>
+      
+          <!-- Created By (Hidden field) -->
+          <input type="hidden" formControlName="createdBy">
+          
+        </form>
+      </ng-template>
+    
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
+        <button 
+          type="button"
+          (click)="closeSessionDialog()"
+          class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold">
+          إلغاء
+        </button>
+        <button 
+          type="button"
+          (click)="saveSession()"
+          [disabled]="!sessionForm.valid || isSaving"
+          class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all duration-300 font-semibold disabled:opacity-50">
+          <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : (isEditMode ? 'pi-check' : 'pi-plus')"></i>
+          <span>{{ isSaving ? 'جاري الحفظ...' : (isEditMode ? 'تحديث' : 'إضافة') }}</span>
+        </button>
+      </div>
+    </ng-template>
+
+
+  </p-dialog>
+
+  <!-- Toast Messages -->
+  <p-toast position="top-center" dir="rtl"></p-toast>
+  
+  <!-- Confirm Dialog -->
+  <p-confirmDialog 
+    styleClass="confirm-dialog-green" 
+    [style]="{width: '450px'}"
+    [baseZIndex]="10000">
+  </p-confirmDialog>
+<!-- </div> -->
+

@@ -1,0 +1,421 @@
+<!-- booking-card.component.html - Updated to match TypeScript model -->
+<div class="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-4 md:p-6" dir="rtl">
+  
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+    <div class="text-center">
+      <p-progressSpinner></p-progressSpinner>
+      <p class="mt-4 text-lg text-gray-600 font-medium">جاري تحميل الحجوزات...</p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <!-- Header Section with PrimeNG Card -->
+    <p-card styleClass="shadow-xl border border-emerald-100 overflow-hidden">
+      <ng-template pTemplate="header">
+        <div class="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 px-6 py-8 -mx-6 -mt-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 class="text-3xl font-bold text-white mb-2">إنشاء بطاقة حجز</h1>
+              <p class="text-emerald-100">اختر حجز لإنشاء وطباعة بطاقة الحجز</p>
+            </div>
+            <div class="flex items-center gap-3 mt-4 md:mt-0">
+              <button 
+                (click)="refreshBookings()"
+                class="flex items-center gap-2 bg-white bg-opacity-20 backdrop-blur-sm rounded-xl px-4 py-2 text-white hover:bg-white hover:bg-opacity-30 transition-colors"
+                [disabled]="isLoading">
+                <i class="pi pi-refresh"></i>
+                <span>تحديث</span>
+              </button>
+              <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl px-4 py-2">
+                <span class="text-white text-sm">التاريخ: {{ currentDate | date:'dd/MM/yyyy':'':'ar-SA' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+      
+      <!-- Selection Section -->
+      <div class="p-6">
+        <div class="flex flex-col md:flex-row gap-4 items-end">
+          <div class="flex-1">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">اختيار الحجز</label>
+            
+            <!-- No bookings message -->
+            <div *ngIf="bookings.length === 0 && !isLoading" class="text-center p-8 bg-emerald-50 rounded-lg border-2 border-dashed border-emerald-300">
+              <i class="pi pi-calendar-times text-4xl text-emerald-400 mb-4"></i>
+              <h3 class="text-lg font-semibold text-emerald-600 mb-2">لا توجد حجوزات متاحة</h3>
+              <p class="text-emerald-500 mb-4">لم يتم العثور على أي حجوزات لإنشاء البطاقات</p>
+              <button 
+                (click)="navigateToBookingForm()"
+                class="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors mx-auto">
+                <i class="pi pi-plus"></i>
+                إنشاء حجز جديد
+              </button>
+            </div>
+
+            <!-- Booking dropdown -->
+            <p-dropdown 
+              *ngIf="bookings.length > 0"
+              [options]="bookingOptions"
+              [(ngModel)]="selectedBookingId"
+              (onChange)="onBookingSelect()"
+              placeholder="اختر حجز لإنشاء البطاقة..."
+              styleClass="w-full"
+              [style]="{'width': '100%'}"
+              panelStyleClass="text-right"
+              [disabled]="isLoading">
+            </p-dropdown>
+          </div>
+          
+          <!-- Action buttons -->
+          <div *ngIf="selectedBooking" class="flex gap-3">
+            <p-button 
+              (onClick)="printCard()"
+              label="طباعة البطاقة"
+              icon="pi pi-print"
+              styleClass="p-button-success"
+              [style]="{'font-weight': '600'}"
+              [disabled]="isLoading">
+            </p-button>
+            <p-button 
+              (onClick)="downloadPDF()"
+              label="تحميل PDF"
+              icon="pi pi-download"
+              styleClass="p-button-info"
+              [style]="{'font-weight': '600'}"
+              [disabled]="isGeneratingPDF"
+              [loading]="isGeneratingPDF">
+            </p-button>
+            <p-button 
+              (onClick)="navigateToBookingForm()"
+              label="حجز جديد"
+              icon="pi pi-plus"
+              styleClass="p-button-outlined"
+              [style]="{'font-weight': '600'}">
+            </p-button>
+          </div>
+        </div>
+
+        <!-- Booking status indicator -->
+        <div *ngIf="selectedBooking" class="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-info-circle text-emerald-600"></i>
+            <span class="text-emerald-800 font-medium">
+              حالة الحجز: 
+              <span [ngClass]="{
+                'text-green-600': selectedBooking.status === BookingStatus.Confirmed,
+                'text-yellow-600': selectedBooking.status === BookingStatus.Pending,
+                'text-red-600': selectedBooking.status === BookingStatus.Cancelled
+              }">
+                {{
+                  selectedBooking.status === BookingStatus.Confirmed ? 'مؤكد' :
+                  selectedBooking.status === BookingStatus.Pending ? 'قيد الانتظار' :
+                  selectedBooking.status === BookingStatus.Cancelled ? 'ملغي' : selectedBooking.status
+                }}
+              </span>
+            </span>
+            <span class="text-gray-600 text-sm mr-4">
+              تاريخ الإنشاء: {{ selectedBooking.bookingDate | date:'dd/MM/yyyy':'':'ar-SA' }}
+            </span>
+          </div>
+          
+          <!-- Payment status indicator -->
+          <div class="flex items-center gap-2 mt-2">
+            <i class="pi pi-wallet text-emerald-600"></i>
+            <span class="text-emerald-800 font-medium">
+              حالة الدفع:
+              <span [ngClass]="{
+                'text-green-600': selectedBooking.isFullyPaid,
+                'text-yellow-600': !selectedBooking.isFullyPaid && selectedBooking.paidAmount > 0,
+                'text-red-600': selectedBooking.paidAmount === 0
+              }">
+                {{
+                  selectedBooking.isFullyPaid ? 'مدفوع بالكامل' :
+                  selectedBooking.paidAmount > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'
+                }}
+              </span>
+            </span>
+            <span class="text-gray-600 text-sm mr-4">
+              آخر تحديث: {{ selectedBooking.updatedAt | date:'dd/MM/yyyy HH:mm':'':'ar-SA' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Card Preview -->
+    <div *ngIf="selectedBooking" class="max-w-4xl mx-auto">
+      <div class="bg-white rounded-lg shadow-2xl overflow-hidden border border-emerald-200 relative print:shadow-none print:border print:border-gray-400">
+        <!-- Year Badge -->
+        <div class="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 font-bold text-lg z-10 rounded shadow-lg print:shadow-none">
+          {{ (selectedBooking.date | date:'yyyy') }}
+        </div>
+        
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[600px] print:min-h-screen print:grid-cols-2">
+          <!-- Left Column - Student & Teacher Data -->
+          <div class="p-6 bg-white space-y-6 print:p-4">
+            <!-- Student Section -->
+            <div class="space-y-4">
+              <div class="bg-red-500 text-white text-center py-3 font-bold text-lg -mx-6 print:-mx-4">
+                بيانات الطالب
+              </div>
+              
+              <div class="space-y-3">
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    اسم الطالب
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.student?.name }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    الصف
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.student?.notes }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    الهاتف
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.student?.phoneNumber }}
+                  </div>
+                </div>
+                
+                <!-- Student ID -->
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    رقم الطالب
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.studentId }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Teacher Section -->
+            <div class="space-y-4">
+              <div class="bg-red-500 text-white text-center py-3 font-bold text-lg -mx-6 print:-mx-4">
+                بيانات المدرس
+              </div>
+              
+              <div class="space-y-3">
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    اسم المدرس
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.teacher?.name }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    محمول
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.teacher?.phoneNumber }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    خبرة
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.teacher?.name }}
+                  </div>
+                </div>
+                
+                <!-- Teacher ID -->
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    رقم المدرس
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.teacherId }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Subject Section (if available through group or teacher) -->
+            <!-- <div *ngIf="selectedBooking.group.subject || selectedBooking.teacher.subject" class="space-y-4"> -->
+              <!-- <div class="bg-green-500 text-white text-center py-3 font-bold text-lg -mx-6 print:-mx-4">
+                بيانات المادة
+              </div> -->
+<!--               
+              <div class="space-y-3">
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    المادة
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.group.subject?.name || selectedBooking.teacher.subject?.name }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-emerald-300">
+                  <div class="bg-emerald-500 text-white px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    المدة
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-emerald-50 text-sm font-medium">
+                    {{ selectedBooking.group.subject?.duration || selectedBooking.teacher.subject?.duration }} دقيقة
+                  </div>
+                </div>
+              </div> -->
+            </div>
+            
+            <!-- Special Notes Section -->
+            <div *ngIf="selectedBooking.notes" class="bg-emerald-500 text-white p-4 -mx-6 text-center print:-mx-4">
+              <div class="font-bold mb-2 text-base">ملاحظات خاصة</div>
+              <div class="bg-emerald-400 p-3 rounded text-sm font-medium">
+                {{ selectedBooking.notes }}
+              </div>
+            </div>
+            
+            <!-- Teacher Address -->
+            <div class="bg-emerald-500 text-white p-4 -mx-6 text-center print:-mx-4">
+              <div class="font-bold mb-2 text-base">عنوان المدرس</div>
+              <div class="bg-emerald-400 p-3 rounded text-sm font-medium">
+                {{ selectedBooking.teacher }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right Column - Group Data -->
+          <div class="p-6 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 text-white space-y-6 print:p-4">
+            <div class="space-y-4">
+              <div class="bg-white bg-opacity-20 backdrop-blur-sm text-center py-3 font-bold text-lg -mx-6 print:-mx-4">
+                بيانات المجموعة
+              </div>
+              
+              <div class="space-y-3">
+                <!-- Group ID -->
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    رقم المجموعة
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.groupId }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    اليوم
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.group?.schedule }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    وقت المجموعة
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.groupTime }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    نوع المجموعة
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.group?.groupName }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    موعد أول حصة
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.date | date:'dd/MM/yyyy':'':'ar-SA' }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    الوقت المختار
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.timeSlot }}
+                  </div>
+                </div>
+                
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    مبلغ الحجز
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.fees | number:'1.2-2':'ar-SA' }} ريال
+                  </div>
+                </div>
+                
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    المبلغ المدفوع
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.paidAmount | number:'1.2-2':'ar-SA' }} ريال
+                  </div>
+                </div>
+                
+                <!-- Remaining amount using calculated property -->
+                <div *ngIf="selectedBooking.remainingAmount && selectedBooking.remainingAmount > 0" 
+                     class="flex border border-yellow-300 bg-yellow-500 bg-opacity-20">
+                  <div class="bg-yellow-500 bg-opacity-40 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    المبلغ المتبقي
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-yellow-500 bg-opacity-20 backdrop-blur-sm text-sm font-medium">
+                    {{ selectedBooking.remainingAmount | number:'1.2-2':'ar-SA' }} ريال
+                  </div>
+                </div>
+                
+                <!-- Payment status indicator -->
+                <div class="flex border border-white border-opacity-30">
+                  <div class="bg-white bg-opacity-30 backdrop-blur-sm px-4 py-3 text-sm font-semibold w-32 text-center shrink-0">
+                    حالة الدفع
+                  </div>
+                  <div class="flex-1 px-4 py-3 bg-white bg-opacity-10 backdrop-blur-sm text-sm font-medium">
+                    <span [ngClass]="{
+                      'text-green-200': selectedBooking.isFullyPaid,
+                      'text-yellow-200': !selectedBooking.isFullyPaid && selectedBooking.paidAmount > 0,
+                      'text-red-200': selectedBooking.paidAmount === 0
+                    }">
+                      {{ selectedBooking.isFullyPaid ? 'مدفوع بالكامل' : 
+                         (selectedBooking.paidAmount > 0 ? 'مدفوع جزئياً' : 'غير مدفوع') }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-emerald-500 text-white text-center p-4 font-bold">
+          <div class="text-base">عزيزي الطالب : يرجى مراجعة بيانات الحجز قبل مغادرة المكتبة</div>
+          <div class="text-sm mt-1 opacity-90">
+            رقم الحجز: {{ selectedBooking.id }} - تاريخ الطباعة: {{ currentDate | date:'dd/MM/yyyy HH:mm':'':'ar-SA' }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Messages -->
+  <p-toast position="top-center" dir="rtl"></p-toast>

@@ -1,0 +1,104 @@
+/* Add these styles to your component CSS or global styles */
+
+/* Custom styling for group components */
+.group-card {
+    transition: all 0.3s ease;
+  }
+  
+  .group-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  /* Custom scrollbar for better aesthetics */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #047857;
+  }
+  
+  /* Improve form appearance */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  /* Required field indicator */
+  .text-red-500 {
+    color: #ef4444;
+  }
+  
+  /* Error message styling */
+  .p-error {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  
+  /* Custom calendar styling */
+  :host ::ng-deep .p-calendar .p-datepicker {
+    font-family: "Tajawal", sans-serif;
+  }
+  
+  :host ::ng-deep .p-calendar .p-datepicker-header {
+    background: #10b981;
+    color: white;
+  }
+  
+  /* Custom dropdown styling */
+  :host ::ng-deep .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+    background: #d1fae5;
+    color: #047857;
+  }
+  
+  /* Custom dialog styling */
+  :host ::ng-deep .p-dialog {
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+  
+  :host ::ng-deep .p-dialog .p-dialog-header {
+    background: white;
+    color: #1f2937;
+    padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  }
+  
+  :host ::ng-deep .p-dialog .p-dialog-content {
+    background: white;
+    color: #4b5563;
+    padding: 0 1.5rem;
+  }
+  
+  :host ::ng-deep .p-dialog .p-dialog-footer {
+    background: white;
+    padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+    text-align: center;
+  }
+  
+  /* Animation for cards */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  

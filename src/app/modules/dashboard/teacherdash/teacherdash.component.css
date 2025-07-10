@@ -1,0 +1,61 @@
+
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring__circle {
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 0.35s;
+        }
+        
+        .progress-ring__circle.progress-75 {
+            stroke-dashoffset: 62.8;
+        }
+        
+        .progress-ring__circle.progress-85 {
+            stroke-dashoffset: 37.68;
+        }
+        
+        .progress-ring__circle.progress-92 {
+            stroke-dashoffset: 20.096;
+        }
+   

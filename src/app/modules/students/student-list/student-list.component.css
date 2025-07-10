@@ -1,0 +1,39 @@
+/* RTL Table Styles */
+.p-datatable-rtl .p-datatable-thead > tr > th {
+  text-align: right;
+}
+
+.p-datatable-rtl .p-datatable-tbody > tr > td {
+  text-align: right;
+}
+
+/* Progress Bar Colors */
+.bg-green-500 {
+  background-color: #010c12;
+}
+
+.bg-yellow-500 {
+  background-color: #01080e;
+}
+
+.bg-red-500 {
+  background-color: #180101;
+}
+
+/* Custom Scrollbar for RTL */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

@@ -1,0 +1,45 @@
+/* Custom styles for teacher management */
+:host {
+    display: block;
+    background-color: #065f46;
+    min-height: calc(100vh - 64px);
+  }
+  
+  /* Status badges */
+  .bg-green-100 {
+    background-color: #19c66c;
+  }
+  .text-green-800 {
+    color: #065f46;
+  }
+  .bg-red-100 {
+    background-color: #fee2e2;
+  }
+  .text-red-800 {
+    color: #991b1b;
+  }
+  
+  /* Form validation */
+  .p-invalid {
+    border-color: #fca5a5 !important;
+  }
+  .p-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  /* Table styles */
+  .p-datatable {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .p-datatable .p-datatable-thead > tr > th {
+    background-color: #0b1d41;
+    color: #374151;
+    font-weight: 600;
+  }
+  
+  .p-datatable .p-datatable-tbody > tr:hover {
+    background-color: #f9fafb;
+  }

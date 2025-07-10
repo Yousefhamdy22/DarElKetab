@@ -1,0 +1,304 @@
+.custom-dropdown-green ::ng-deep .p-dropdown {
+    width: 100% !important;
+    border: 2px solid #a7f3d0 !important;
+    border-radius: 0.75rem !important;
+    padding: 0.5rem !important;
+    transition: all 0.3s ease !important;
+    background: white !important;
+  }
+  
+  .custom-dropdown-green ::ng-deep .p-dropdown:focus,
+  .custom-dropdown-green ::ng-deep .p-dropdown.p-focus {
+    border-color: #19c66c !important;
+    box-shadow: 0 0 0 4px rgba(25, 198, 108, 0.1) !important;
+  }
+
+  .custom-dropdown-green ::ng-deep .p-dropdown:hover {
+    border-color: #10b981 !important;
+  }
+
+  .custom-dropdown-green ::ng-deep .p-dropdown-panel {
+    z-index: 10000 !important;
+    border: 2px solid #a7f3d0 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    background: white !important;
+    margin-top: 4px !important;
+  }
+
+  .custom-dropdown-green ::ng-deep .p-dropdown-items {
+    padding: 0.5rem !important;
+  }
+
+  .custom-dropdown-green ::ng-deep .p-dropdown-item {
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .custom-dropdown-green ::ng-deep .p-dropdown-item:hover {
+    background: #f0fdf4 !important;
+    color: #059669 !important;
+  }
+
+  .custom-dropdown-green ::ng-deep .p-dropdown-item.p-highlight {
+    background: #10b981 !important;
+    color: white !important;
+  }
+
+  /* Custom Calendar Styles - Green Theme */
+  .custom-calendar-green ::ng-deep .p-calendar {
+    width: 100% !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-inputtext {
+    border: 2px solid #a7f3d0 !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    transition: all 0.3s ease !important;
+    background: white !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-inputtext:focus {
+    border-color: #19c66c !important;
+    box-shadow: 0 0 0 4px rgba(25, 198, 108, 0.1) !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-inputtext:hover {
+    border-color: #10b981 !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-datepicker {
+    z-index: 10000 !important;
+    border: 2px solid #a7f3d0 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    background: white !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-datepicker-header {
+    background: #f0fdf4 !important;
+    border-bottom: 1px solid #a7f3d0 !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-datepicker-today > .p-ripple {
+    background: #dcfce7 !important;
+    color: #059669 !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-datepicker-today > .p-ripple:hover {
+    background: #bbf7d0 !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-highlight {
+    background: #10b981 !important;
+    color: white !important;
+  }
+
+  .custom-calendar-green ::ng-deep .p-datepicker td > span:hover {
+    background: #f0fdf4 !important;
+    color: #059669 !important;
+  }
+
+  /* Table Styles - Green Theme */
+  .modern-table-green ::ng-deep .p-datatable-table {
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+  }
+
+  .modern-table-green ::ng-deep .p-datatable-header {
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5) !important;
+    border-bottom: 1px solid #a7f3d0 !important;
+  }
+
+  .modern-table-green ::ng-deep .p-paginator {
+    background: #f9fafb !important;
+    border-top: 1px solid #a7f3d0 !important;
+  }
+
+  .modern-table-green ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+    background: #10b981 !important;
+    color: white !important;
+  }
+
+  .modern-table-green ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page:hover {
+    background: #f0fdf4 !important;
+    color: #059669 !important;
+  }
+
+  /* Dialog Styles - Green Theme */
+  .session-dialog-green ::ng-deep .p-dialog-header {
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5) !important;
+    border-bottom: 1px solid #a7f3d0 !important;
+  }
+
+  .session-dialog-green ::ng-deep .p-dialog-content {
+    background: white !important;
+  }
+
+  .session-dialog-green ::ng-deep .p-dialog-footer {
+    background: #f9fafb !important;
+    border-top: 1px solid #e5e7eb !important;
+  }
+
+  /* Confirm Dialog Styles - Green Theme */
+  .confirm-dialog-green ::ng-deep .p-dialog-header {
+    background: linear-gradient(135deg, #fef2f2, #fff7ed) !important;
+    border-bottom: 1px solid #fecaca !important;
+  }
+
+  .confirm-dialog-green ::ng-deep .p-confirm-dialog-message {
+    color: #374151 !important;
+  }
+
+  .confirm-dialog-green ::ng-deep .p-button.p-confirm-dialog-accept {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+  }
+
+  .confirm-dialog-green ::ng-deep .p-button.p-confirm-dialog-accept:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+  }
+
+  .confirm-dialog-green ::ng-deep .p-button.p-confirm-dialog-reject {
+    background: #6b7280 !important;
+    border-color: #6b7280 !important;
+    color: white !important;
+  }
+
+  .confirm-dialog-green ::ng-deep .p-button.p-confirm-dialog-reject:hover {
+    background: #4b5563 !important;
+    border-color: #4b5563 !important;
+  }
+
+  /* Toast Styles - Green Theme */
+  ::ng-deep .p-toast .p-toast-message.p-toast-message-success {
+    background: #f0fdf4 !important;
+    border: 1px solid #10b981 !important;
+    color: #059669 !important;
+  }
+
+  ::ng-deep .p-toast .p-toast-message.p-toast-message-success .p-toast-message-icon {
+    color: #10b981 !important;
+  }
+
+  ::ng-deep .p-toast .p-toast-message.p-toast-message-error {
+    background: #fef2f2 !important;
+    border: 1px solid #dc2626 !important;
+    color: #dc2626 !important;
+  }
+
+  ::ng-deep .p-toast .p-toast-message.p-toast-message-error .p-toast-message-icon {
+    color: #dc2626 !important;
+  }
+
+  ::ng-deep .p-toast .p-toast-message.p-toast-message-info {
+    background: #f0f9ff !important;
+    border: 1px solid #0ea5e9 !important;
+    color: #0284c7 !important;
+  }
+
+  ::ng-deep .p-toast .p-toast-message.p-toast-message-info .p-toast-message-icon {
+    color: #0ea5e9 !important;
+  }
+
+  /* Tooltip Styles - Green Theme */
+  ::ng-deep .p-tooltip .p-tooltip-text {
+    background: #1f2937 !important;
+    color: white !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  ::ng-deep .p-tooltip .p-tooltip-arrow {
+    border-top-color: #1f2937 !important;
+  }
+
+  /* Progress Spinner Styles - Green Theme */
+  ::ng-deep .p-progress-spinner-circle {
+    stroke: #10b981 !important;
+  }
+
+  /* Scrollbar Styles */
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 4px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #059669;
+  }
+
+  /* Fix for overlapping elements */
+  .p-component-overlay {
+    z-index: 10000 !important;
+  }
+
+  /* Animation for smooth transitions */
+  .transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Custom animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .custom-dropdown-green ::ng-deep .p-dropdown-panel {
+      max-height: 200px !important;
+      overflow-y: auto !important;
+    }
+    
+    .custom-calendar-green ::ng-deep .p-datepicker {
+      width: 100% !important;
+      max-width: 90vw !important;
+    }
+  }
+
+  /* Dark mode support (if needed) */
+  @media (prefers-color-scheme: dark) {
+    .custom-dropdown-green ::ng-deep .p-dropdown {
+      background: #1f2937 !important;
+      color: white !important;
+      border-color: #374151 !important;
+    }
+    
+    .custom-dropdown-green ::ng-deep .p-dropdown-panel {
+      background: #1f2937 !important;
+      border-color: #374151 !important;
+    }
+    
+    .custom-dropdown-green ::ng-deep .p-dropdown-item {
+      color: #e5e7eb !important;
+    }
+    
+    .custom-dropdown-green ::ng-deep .p-dropdown-item:hover {
+      background: #374151 !important;
+      color: #10b981 !important;
+    }
+  }

@@ -1,0 +1,298 @@
+<div class="exam-management-container" dir="rtl">
+  <div class="exam-management-container min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <div class="header-section bg-gradient-to-r from-emerald-600 to-green-700 text-white p-6 shadow-lg">
+      <div class="container mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
+              <i class="pi pi-book"></i>
+              نظام إدارة الامتحانات
+            </h1>
+
+            <div class="mt-4 flex gap-2">
+              <button *ngFor="let tab of tabs" pButton [label]="tab.label" [icon]="tab.icon"
+                [class.bg-white]="activeTab === tab.value" [class.text-green-700]="activeTab === tab.value"
+                [class.bg-transparent]="activeTab !== tab.value" [class.text-white]="activeTab !== tab.value"
+                [class.border-white]="activeTab !== tab.value"
+                class="p-button-rounded p-button-outlined transition-all duration-200" (click)="setActiveTab(tab)">
+              </button>
+            </div>
+          </div>
+
+
+          <div class="flex flex-wrap gap-3">
+            <span class="text-sm bg-white/20 px-4 py-2 rounded-full flex items-center">
+              <i class="pi pi-calendar mr-2"></i>
+              {{currentDate | date:'dd/MM/yyyy'}}
+            </span>
+            <span class="text-sm bg-white/20 px-4 py-2 rounded-full flex items-center">
+              <i class="pi pi-user mr-2"></i>
+              {{currentUser}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Section -->
+    <div class="content-section container mx-auto p-4 md:p-6">
+      <!-- Search and Filter Section -->
+      <div class="search-section bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+        <h3 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+          <i class="pi pi-filter mr-2 text-emerald-600"></i>
+          تصفية الامتحانات
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Search Input -->
+          <div class="col-span-1">
+            <label class="block text-sm font-medium text-gray-700 mb-2">بحث</label>
+            <span class="p-input-icon-left w-full">
+              <i class="pi pi-search text-gray-400"></i>
+              <input type="text" pInputText [(ngModel)]="searchQuery" placeholder="ابحث عن امتحان..."
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+            </span>
+          </div>
+
+          <!-- Group Dropdown -->
+          <div class="col-span-1">
+            <label class="block text-sm font-medium text-gray-700 mb-2">المجموعة</label>
+            <p-dropdown [options]="groups || []" [(ngModel)]="selectgroup" optionLabel="groupName"
+              optionValue="groupName" placeholder="اختر مجموعة" [showClear]="true" class="w-full">
+              <ng-template pTemplate="empty">
+                <div class="p-2 text-center text-gray-500">لا توجد مجموعات متاحة</div>
+              </ng-template>
+            </p-dropdown>
+          </div>
+
+          <!-- Date Picker -->
+          <div class="col-span-1">
+            <label class="block text-sm font-medium text-gray-700 mb-2">من تاريخ</label>
+            <p-calendar [(ngModel)]="fromDate" [showIcon]="true" dateFormat="dd/mm/yy" placeholder="اختر تاريخ"
+              [style]="{'width': '100%'}"></p-calendar>
+          </div>
+
+          <!-- Filter Button -->
+          <div class="col-span-1 flex items-end">
+            <button pButton icon="pi pi-filter" label="تصفية"
+              class="bg-emerald-600 hover:bg-emerald-700 w-full h-[46px] rounded-lg shadow-sm"
+              (click)="filterExams()"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exams List -->
+      <div class="exams-list bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+              <i class="pi pi-list mr-2 text-emerald-600"></i>
+              الامتحانات
+              <span
+                class="bg-emerald-100 text-emerald-800 text-xs font-medium ml-3 px-2.5 py-1 rounded-full">{{filteredExams.length}}</span>
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">إدارة قائمة الامتحانات</p>
+          </div>
+          <button pButton icon="pi pi-plus" label="إضافة امتحان"
+            class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-lg shadow-sm"
+            (click)="showExamDialog()"></button>
+        </div>
+
+        <p-table [value]="filteredExams" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20]"
+          [loading]="loading" styleClass="exam-table rtl-table" [rowHover]="true">
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="text-center">#</th>
+              <th>الامتحان</th>
+              <th>المجموعة</th>
+              <th>التاريخ</th>
+              <th class="text-center">الدرجة الكاملة</th>
+              <th class="text-center">الحالة</th>
+              <th class="text-center">إجراءات</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-exam let-i="rowIndex">
+            <tr>
+              <td class="text-center">{{i + 1}}</td>
+              <td>
+                <div class="font-medium">{{exam.Name}}</div>
+                <small class="text-gray-500">{{exam.description}}</small>
+              </td>
+              <td>{{exam.groupName}}</td>
+              <td>{{exam.examDate | date: 'dd/MM/yyyy' : 'UTC+3' : 'ar'}}</td>
+              <td class="text-center">
+                <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-lg">{{exam.maxScore}}</span>
+              </td>
+              <td class="text-center">
+                <p-tag [value]="exam.isActive ? 'نشط' : 'منتهي'" [severity]="exam.isActive ? 'success' : 'danger'"
+                  [rounded]="true"></p-tag>
+              </td>
+              <td>
+                <div class="flex justify-center gap-2">
+                  <button pButton icon="pi pi-eye" pTooltip="عرض النتائج" tooltipPosition="top"
+                    class="p-button-rounded p-button-success p-button-outlined" (click)="viewResults(exam.id)"></button>
+                  <button pButton icon="pi pi-pencil" pTooltip="تعديل" tooltipPosition="top"
+                    class="p-button-rounded p-button-info p-button-outlined" (click)="editExam(exam)"></button>
+                  <button pButton icon="pi pi-trash" pTooltip="حذف" tooltipPosition="top"
+                    class="p-button-rounded p-button-danger p-button-outlined"
+                    (click)="confirmDelete(exam.id)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center py-8">
+                <div class="flex flex-col items-center">
+                  <i class="pi pi-inbox text-5xl text-gray-300 mb-3"></i>
+                  <span class="text-gray-500">لا توجد امتحانات متاحة</span>
+                  <button pButton label="إضافة امتحان جديد" icon="pi pi-plus"
+                    class="bg-emerald-600 hover:bg-emerald-700 mt-4" (click)="showExamDialog()"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+
+
+      </div>
+    </div>
+
+
+
+
+
+  </div>
+
+  <!-- Exam Dialog -->
+  <p-dialog header="{{editMode ? 'تعديل الامتحان' : 'إضافة امتحان جديد'}}" [(visible)]="showDialog" [modal]="true"
+    [contentStyle]="{'max-height': '90vh', 'overflow': 'auto'}" [style]="{width: '600px'}"
+    [breakpoints]="{'960px': '75vw', '640px': '90vw'}" [draggable]="false" [resizable]="false" styleClass="rtl-dialog">
+    <form [formGroup]="examForm" (ngSubmit)="saveExam()" class="p-fluid">
+      <!-- Form content remains the same as in your template -->
+    </form>
+  </p-dialog>
+
+  <!-- Confirmation Dialog -->
+  <p-confirmDialog [style]="{width: '500px'}" [baseZIndex]="10000" styleClass="rtl-dialog"></p-confirmDialog>
+
+  <p-dialog header="{{editMode ? 'تعديل الامتحان' : 'إضافة امتحان جديد'}}" [(visible)]="showDialog" [modal]="true"
+    [contentStyle]="{'max-height': '90vh', 'overflow': 'auto'}" [style]="{width: '600px'}"
+    [breakpoints]="{'960px': '75vw', '640px': '90vw'}" [draggable]="false" [resizable]="false" styleClass="rtl-dialog">
+    <form [formGroup]="examForm" (ngSubmit)="saveExam()" class="p-fluid">
+      <div class="grid grid-cols-1 gap-5">
+        <div class="form-field">
+          <label class="block text-sm font-medium text-gray-700 mb-2">عنوان الامتحان*</label>
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon">
+              <i class="pi pi-bookmark"></i>
+            </span>
+            <input type="text" pInputText formControlName="Name" placeholder="أدخل عنوان الامتحان"
+              class="w-full p-3 rounded-lg">
+          </div>
+          <!-- <small *ngIf="examForm.get('Name')?.invalid && examForm.get('Name')?.touched" class="text-red-500">هذا
+            الحقل مطلوب</small> -->
+        </div>
+
+        <div class="form-field">
+          <label class="block text-sm font-medium text-gray-700 mb-2">وصف الامتحان*</label>
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon">
+              <i class="pi pi-bookmark"></i>
+            </span>
+            <input type="text" pInputText formControlName="Description" placeholder="أدخل وصف الامتحان"
+              class="w-full p-3 rounded-lg">
+          </div>
+          <!-- <small *ngIf="examForm.get('Description')?.invalid && examForm.get('Description')?.touched"
+            class="text-red-500">هذا الحقل مطلوب</small> -->
+        </div>
+
+        <div class="form-field">
+          <label class="block text-sm font-medium text-gray-700 mb-2">المجموعة*</label>
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon">
+              <i class="pi pi-users"></i>
+            </span>
+            <p-dropdown formControlName="groupID" [options]="groups || []" optionLabel="groupName" optionValue="groupID"
+              placeholder="اختر المجموعة" styleClass="w-full rounded-lg">
+              <ng-template pTemplate="empty">
+                <div class="p-2 text-center text-gray-500">لا توجد مجموعات متاحة</div>
+              </ng-template>
+            </p-dropdown>
+          </div>
+          <small *ngIf="examForm.get('groupID')?.invalid && examForm.get('groupID')?.touched" class="text-red-500">هذا
+            الحقل مطلوب</small>
+        </div>
+
+        <div class="form-field">
+          <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الامتحان*</label>
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon">
+              <i class="pi pi-calendar"></i>
+            </span>
+            <p-calendar formControlName="examDate" [showTime]="true" dateFormat="dd/mm/yy"
+              placeholder="اختر تاريخ الامتحان" [showIcon]="false" styleClass="w-full rounded-lg">
+            </p-calendar>
+          </div>
+          <small *ngIf="examForm.get('examDate')?.invalid && examForm.get('examDate')?.touched" class="text-red-500">هذا
+            الحقل مطلوب</small>
+        </div>
+
+        <div class="form-field">
+          <label class="block text-sm font-medium text-gray-700 mb-2">الدرجة الكاملة*</label>
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon">
+              <i class="pi pi-star"></i>
+            </span>
+            <input type="number" pInputText formControlName="maxScore" placeholder="أدخل الدرجة الكاملة"
+              class="w-full p-3 rounded-lg">
+          </div>
+          <small *ngIf="examForm.get('maxScore')?.invalid && examForm.get('maxScore')?.touched" class="text-red-500">هذا
+            الحقل مطلوب</small>
+        </div>
+
+        <div class="form-field">
+          <label class="block text-sm font-medium text-gray-700 mb-2">مستوى النجاح</label>
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon">
+              <i class="pi pi-percentage"></i>
+            </span>
+            <p-inputNumber formControlName="passPercentage" [min]="0" [max]="100" suffix="%" placeholder="50%"
+              styleClass="w-full rounded-lg">
+            </p-inputNumber>
+          </div>
+        </div>
+
+        <div class="form-field pt-2">
+          <div class="flex items-center">
+            <p-checkbox formControlName="isActive" [binary]="true" styleClass="mr-2"></p-checkbox>
+            <label class="text-sm font-medium text-gray-700">امتحان نشط</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+        <button pButton type="button" label="إلغاء" icon="pi pi-times" class="p-button-outlined"
+          (click)="showDialog = false"></button>
+        <button pButton type="submit" label="حفظ" icon="pi pi-check" [disabled]="examForm.invalid || saving"
+          class="bg-emerald-600 hover:bg-emerald-700">
+          <i class="pi pi-spin pi-spinner" *ngIf="saving"></i>
+          {{editMode ? 'تحديث' : 'إضافة'}}
+        </button>
+      </div>
+    </form>
+  </p-dialog>
+
+  <!-- Confirmation Dialog -->
+  <p-confirmDialog [style]="{width: '500px'}" [baseZIndex]="10000" styleClass="rtl-dialog">
+    <ng-template pTemplate="footer">
+      <button type="button" pButton icon="pi pi-times" label="لا" class="p-button-text"></button>
+      <button type="button" pButton icon="pi pi-check" label="نعم" class="bg-red-600 hover:bg-red-700"></button>
+    </ng-template>
+  </p-confirmDialog>
+
+  <!-- Toast -->
+  <p-toast position="top-left"></p-toast>
+</div>
