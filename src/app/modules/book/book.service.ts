@@ -6,17 +6,28 @@ import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environment/environment';
 import { Booking } from './book.models';
 import { Teacher } from '../teacher/teacher.model';
+
 export interface BookingRequest {
   studentName: string;
+  teacherd:number,
+  groupId:number,
   studentPhone: string;
   studentGender: 'male' | 'female';
   educationStage: string;
+  educationStageLevel:string,
   grade: string;
-  subjectId: number;
   teacherId: string;
   date: string;
   timeSlot: string;
   notes?: string;
+  studentInfo: {
+    name: string,
+    phoneNumber: string,
+    gender: string,
+    stage: string,
+    stageLevel:string,
+    status: 'Active'
+  },
 }
 
 export interface ApiResponse<T> {
@@ -34,9 +45,9 @@ export class BookingService {
   private apiBadeUrl =  `${environment.apiUrl}`;
 
   
-  // State management
+
   private bookingsSubject = new BehaviorSubject<Booking[]>([]);
-  public bookings$ = this.bookingsSubject.asObservable();
+  // public bookings$ = this.bookingsSubject.asObservable();
   
   private selectedBookingSubject = new BehaviorSubject<Booking | null>(null);
   public selectedBooking$ = this.selectedBookingSubject.asObservable();
@@ -45,7 +56,7 @@ export class BookingService {
 
 
   getBookings(): Observable<Booking[]> {
-    return this.http.get<Booking[]>(`${this.apiBadeUrl}/Booking`)  // Direct array, no ApiResponse wrapper
+    return this.http.get<Booking[]>(`${this.apiBadeUrl}/Booking`)  
       .pipe(
         map(response => {
           this.bookingsSubject.next(response);
@@ -55,23 +66,6 @@ export class BookingService {
       );
   }
  
-  // getBookings(): Observable<Booking[]> {
-  //   return this.http.get<ApiResponse<Booking[]>>(`${this.apiBadeUrl}/Booking`)
-  //     .pipe(
-  //       map(response => {
-  //         if (response.success) {
-  //           this.bookingsSubject.next(response.data);
-  //           return response.data;
-  //         }
-  //         throw new Error(response.message || 'Failed to fetch bookings');
-  //       }),
-  //       catchError(this.handleError)
-  //     );
-  // }
-
-  /**
-   * Get booking by ID
-   */
   getBookingById(id: string): Observable<Booking> {
     return this.http.get<ApiResponse<Booking>>(`${this.apiBadeUrl}/Booking/${id}`)
       .pipe(
@@ -85,9 +79,6 @@ export class BookingService {
       );
   }
 
-  /**
-   * Create new booking
-   */
   createBooking(bookingData: BookingRequest): Observable<Booking> {
     return this.http.post<ApiResponse<Booking>>(`${this.apiBadeUrl}/Booking`, bookingData)
       .pipe(
@@ -124,9 +115,7 @@ export class BookingService {
       );
   }
 
-  /**
-   * Delete booking
-   */
+  
   deleteBooking(id: number): Observable<boolean> {
     return this.http.delete<ApiResponse<boolean>>(`${this.apiBadeUrl}/Booking/${id}`)
       .pipe(
@@ -158,21 +147,6 @@ export class BookingService {
       );
   }
 
-  /**
-   * Get teachers by subject
-   */
-  getTeachersBySubject(subjectId: number): Observable<Teacher[]> {
-    return this.http.get<ApiResponse<Teacher[]>>(`${this.apiBadeUrl}/teachers/by-subject/${subjectId}`)
-      .pipe(
-        map(response => {
-          if (response.success) {
-            return response.data;
-          }
-          throw new Error(response.message || 'Failed to fetch teachers');
-        }),
-        catchError(this.handleError)
-      );
-  }
 
   
    
@@ -180,16 +154,11 @@ export class BookingService {
     this.selectedBookingSubject.next(booking);
   }
 
-  /**
-   * Get current selected booking
-   */
   getSelectedBooking(): Booking | null {
     return this.selectedBookingSubject.value;
   }
 
-  /**
-   * Generate booking card data for printing
-   */
+
   generateBookingCard(bookingId: string): Observable<Booking> {
     return this.getBookingById(bookingId).pipe(
       map(booking => {
@@ -199,11 +168,7 @@ export class BookingService {
     );
   }
 
-  // Utility methods
   
-  /**
-   * Format date for Arabic locale
-   */
   formatDate(dateInput: string | Date): string {
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     return date.toLocaleDateString('ar-SA', {
@@ -214,9 +179,7 @@ export class BookingService {
     });
   }
 
-  /**
-   * Generate booking reference ID
-   */
+ 
   generateBookingReference(): string {
     const now = new Date();
     const year = now.getFullYear();
@@ -249,11 +212,7 @@ export class BookingService {
     if (!data.grade) {
       errors.push('الصف مطلوب');
     }
-    
-    if (!data.subjectId) {
-      errors.push('المادة مطلوبة');
-    }
-    
+   
     if (!data.teacherId) {
       errors.push('المعلم مطلوب');
     }

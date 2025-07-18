@@ -8,6 +8,7 @@ export interface Teacher {
   phoneNumber: string;
   joinDate: Date;
   status: TeacherStatus;
+  groupId:number;
   //user?: User; 
   groups?: Group[]; 
  // bookings?: Booking[]; 

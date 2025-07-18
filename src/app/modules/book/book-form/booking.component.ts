@@ -2,7 +2,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, forkJoin, finalize } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, forkJoin, finalize, catchError, of } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { 
   BookingService, 
@@ -17,6 +17,8 @@ import { Teacher, TeacherStatus
 import { StudentService } from '../../students/student.service';
 import { TeacherService } from '../../teacher/teacher.service';
 import { Group } from '../../groups/group.models';
+import { Student } from '../../students/student.model';
+import { GroupService } from '../../groups/group.service';
 
 @Component({
   selector: 'app-booking',
@@ -25,31 +27,56 @@ import { Group } from '../../groups/group.models';
   styleUrl: './booking.component.css',
  
 })
-export class BookingComponent implements OnInit, OnDestroy {
+export class BookingComponent implements OnInit {
   bookingForm: FormGroup;
-  minDate = new Date();
   isLoading = false;
   isSubmitting = false;
-  groups: any[] = [];
-  // Destroy subject for unsubscribing
-  private destroy$ = new Subject<void>();
-  
+  // loading:boolean;
 
+  
+  
+  // Data arrays
+  existingStudents: Student[] = [];
+  filteredStudents: Student[] = [];
+  groups: Group[] = [];
+  groupsError: boolean = false;
+
+  availableGroups: Group[] = [];
   teachers: Teacher[] = [];
   availableTeachers: Teacher[] = [];
-  availableTimeSlots: string[] = [];
-  availableGroups: Group[] = []; // Populate this with your groups data
-  selectedGroup!: Group;
+  
+  // Selected entities
+  selectedStudent: Student | null = null;
+  selectedGroup: Group | null = null;
+  selectedTeacher: Teacher | null = null;
+  // loading!:boolean;
+  // Form state flags
+  isNewStudent = true;
+  showStudentDropdown = false;
+  
+  // Destroy subject for unsubscribing
+  private destroy$ = new Subject<void>();
+
   // Static options
   genderOptions = [
     { label: 'ذكر', value: 'male' },
     { label: 'أنثى', value: 'female' }
   ];
+  loadingStates = {
+    students: false,
+    teachers: false,
+    groups: false
+  };
+
+  
+  selectedStage: string | null = null;
+  selectedGrade: string | null = null;
+  filteredGrades: any[] = [];
 
   educationStages = [
     { label: 'الابتدائية', value: 'primary' },
-    { label: 'المتوسطة', value: 'middle' },
-   
+    { label: 'الاعدادية', value: 'middle' },
+  
   ];
 
   grades = [
@@ -60,27 +87,30 @@ export class BookingComponent implements OnInit, OnDestroy {
     { label: 'الخامس', value: '5' },
     { label: 'السادس', value: '6' }
   ];
-
-  defaultTimeSlots = [
-    { label: '08:00 - 09:00', value: '08:00-09:00' },
-    { label: '09:00 - 10:00', value: '09:00-10:00' },
-    { label: '10:00 - 11:00', value: '10:00-11:00' },
-    { label: '11:00 - 12:00', value: '11:00-12:00' },
-    { label: '14:00 - 15:00', value: '14:00-15:00' },
-    { label: '15:00 - 16:00', value: '15:00-16:00' },
-    { label: '16:00 - 17:00', value: '16:00-17:00' },
-    { label: '17:00 - 18:00', value: '17:00-18:00' }
-  ];
-
-  selectedTeacher: Teacher | null = null;
-
+  onEducationStageChange() {
+    const selectedStage = this.bookingForm.get('educationStage')?.value;
+    console.log('Selected Stage:', selectedStage); // Debug log
+  
+    if (selectedStage === 'primary') {
+      this.filteredGrades = this.grades.filter(grade => parseInt(grade.value) <= 6);
+    } 
+    else if (selectedStage === 'middle') {
+      this.filteredGrades = this.grades.filter(grade => parseInt(grade.value) <= 3);
+    } 
+    else {
+      this.filteredGrades = [];
+    }
+    
+    console.log('Filtered Grades:', this.filteredGrades); // Debug log
+    this.bookingForm.get('grade')?.reset('');
+  }
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private bookingService: BookingService,
- 
     private studentService: StudentService,
     private teacherService: TeacherService,
+    private groupService: GroupService,
     private messageService: MessageService
   ) {
     this.bookingForm = this.createForm();
@@ -88,13 +118,46 @@ export class BookingComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadInitialData();
+    this.loadGroups();
     this.setupFormSubscriptions();
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+  // Add these to your component
+
+
+
+loadGroups(): void {
+  if (!this.educationStage?.value || !this.grade?.value) return;
+  
+  this.loadingStates.groups = true;
+  this.groupsError = false;
+  
+  this.groupService.getGroups().subscribe({
+    next: (response: any) => {
+      // Process response
+      console.log(response , "Group data")
+      this.availableGroups = Array.isArray(response) ? response : (response?.data || []);
+      
+      // Enhance group objects
+      this.availableGroups = this.availableGroups.map(group => ({
+        ...group,
+        groupName: group.groupName || `المجموعة ${group.groupID}`,
+        // stage: this.getStageName(group.stageLevel) 
+      }));
+      
+      this.loadingStates.groups = false;
+    },
+    error: (err) => {
+      this.groupsError = true;
+      this.loadingStates.groups = false;
+      console.error('Failed to load groups:', err);
+    }
+  });
+}
+
+// Add this to update selected group when dropdown changes
+
+
   private createForm(): FormGroup {
     return this.fb.group({
       // Student Information
@@ -105,9 +168,8 @@ export class BookingComponent implements OnInit, OnDestroy {
       grade: ['', Validators.required],
       
       // Booking Information
+      groupId: ['', Validators.required],
       teacherId: ['', Validators.required],
-      date: ['', Validators.required],
-      timeSlot: ['', Validators.required],
       amount: ['', [Validators.required, Validators.min(0.01)]],
       paidAmount: ['', [Validators.required, Validators.min(0)]],
       notes: ['']
@@ -117,289 +179,393 @@ export class BookingComponent implements OnInit, OnDestroy {
   private loadInitialData(): void {
     this.isLoading = true;
     
-    forkJoin({
-      teachers: this.teacherService.getAllTeachers()
-    }).pipe(
-      finalize(() => this.isLoading = false)
+    // Load students first
+    this.loadStudents();
+    
+    // Load other data that doesn't depend on form values
+    this.loadAllGroups();
+    this.loadAllTeachers();
+  }
+  private loadStudents(): void {
+    this.loadingStates.students = true;
+    
+    this.studentService.getStudents().pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.error('Error loading students:', error);
+        this.showError('فشل في تحميل بيانات الطلاب');
+        return of([]);
+      }),
+      finalize(() => {
+        this.loadingStates.students = false;
+        this.updateOverallLoadingState();
+      })
     ).subscribe({
-      next: (data: { teachers: Teacher[] }) => {
-        this.availableTeachers = data.teachers;
-      },
-      error: (error: any) => {
-        console.error('Error loading initial data:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'خطأ',
-          detail: 'فشل في تحميل البيانات'
-        });
+      next: (students) => {
+        this.existingStudents = students;
+        this.filteredStudents = [...this.existingStudents];
+        console.log('Students loaded:', students.length);
       }
     });
+  }
+
+  private loadAllGroups(): void {
+    this.loadingStates.groups = true;
+    this.groupsError = false;
+    
+    this.groupService.getGroups().pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.error('Error loading groups:', error);
+        this.groupsError = true;
+        this.showError('فشل في تحميل المجموعات');
+        return of([]);
+      }),
+      finalize(() => {
+        this.loadingStates.groups = false;
+        this.updateOverallLoadingState();
+      })
+    ).subscribe({
+      next: (response: any) => {
+        // Handle different response formats
+        const groups = Array.isArray(response) ? response : (response?.data || []);
+        this.availableGroups = groups.map((group: any) => ({
+          ...group,
+          groupName: group.groupName || `المجموعة ${group.groupID}`,
+          displayName: this.getGroupDisplayName(group)
+        }));
+        console.log('Groups loaded:', this.availableGroups.length);
+      }
+    });
+  }
+
+  private loadAllTeachers(): void {
+    this.loadingStates.teachers = true;
+    
+    this.teacherService.getAllTeachers().pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.error('Error loading teachers:', error);
+        this.showError('فشل في تحميل بيانات المعلمين');
+        return of([]);
+      }),
+      finalize(() => {
+        this.loadingStates.teachers = false;
+        this.updateOverallLoadingState();
+      })
+    ).subscribe({
+      next: (teachers) => {
+        this.availableTeachers = teachers;
+        console.log('Teachers loaded:', teachers.length);
+      }
+    });
+  }
+
+  private updateOverallLoadingState(): void {
+    this.isLoading = Object.values(this.loadingStates).some(state => state);
+  }
+
+  private getGroupDisplayName(group: any): string {
+    let displayName = group.groupName || `المجموعة ${group.groupID}`;
+    
+    if (group.stage && group.stageLevel) {
+      displayName += ` (${this.getStageDisplayName(group.stage)} - ${this.getGradeDisplayName(group.stageLevel)})`;
+    }
+    
+    return displayName;
+  }
+
+  private getStageDisplayName(stage: string): string {
+    const stageMap: { [key: string]: string } = {
+      'Elementary': 'الابتدائية',
+      'Middle': 'الاعدادية',
+      'Secondary': 'الثانوية'
+    };
+    return stageMap[stage] || stage;
+  }
+
+  private getGradeDisplayName(grade: string): string {
+    const gradeMap: { [key: string]: string } = {
+      'Grade1': 'الأول',
+      'Grade2': 'الثاني',
+      'Grade3': 'الثالث',
+      'Grade4': 'الرابع',
+      'Grade5': 'الخامس',
+      'Grade6': 'السادس',
+      'Grade7': 'السابع',
+      'Grade8': 'الثامن',
+      'Grade9': 'التاسع',
+      'Grade10': 'العاشر',
+      'Grade11': 'الحادي عشر',
+      'Grade12': 'الثاني عشر'
+    };
+    return gradeMap[grade] || grade;
+  }
+
+  // Filter groups based on stage and grade
+  private filterGroupsByStageAndGrade(): void {
+    const stage = this.bookingForm.get('educationStage')?.value;
+    const grade = this.bookingForm.get('grade')?.value;
+    
+    if (!stage || !grade) {
+      this.availableGroups = [];
+      return;
+    }
+    
+    // Filter groups based on stage and grade
+    this.availableGroups = this.availableGroups.filter(group => 
+      group.stage === stage && group.stageLevel === grade
+    );
+    
+    console.log('Filtered groups:', this.availableGroups.length);
+  }
+
+  // Filter teachers based on selected group
+  private filterTeachersByGroup(): void {
+    const groupId = this.bookingForm.get('groupId')?.value;
+    
+    if (!groupId) {
+      this.availableTeachers = [];
+      return;
+    }
+    
+    // Find teachers for the selected group
+    this.availableTeachers = this.availableTeachers.filter(teacher => 
+      teacher.groupId === +groupId
+    );
+    
+    console.log('Filtered teachers:', this.availableTeachers.length);
+  }
+
+
+  onGradeChange(): void {
+    // Reset dependent fields
+    this.bookingForm.patchValue({
+      groupId: '',
+      teacherId: ''
+    });
+    
+    this.selectedGroup = null;
+    this.selectedTeacher = null;
+    
+    // Filter groups based on stage and grade
+    this.filterGroupsByStageAndGrade();
+  }
+
+  onGroupChange(): void {
+    const groupId = this.bookingForm.get('groupId')?.value;
+    
+    if (groupId) {
+      this.selectedGroup = this.availableGroups.find(g => g.groupID === +groupId) || null;
+      this.filterTeachersByGroup();
+    } else {
+      this.selectedGroup = null;
+      this.availableTeachers = [];
+    }
+    
+    // Reset teacher selection
+    this.bookingForm.patchValue({ teacherId: '' });
+    this.selectedTeacher = null;
+  }
+
+  onTeacherChange(): void {
+    const teacherId = this.bookingForm.get('teacherId')?.value;
+    
+    if (teacherId) {
+      this.selectedTeacher = this.availableTeachers.find(t => t.teacherId === +teacherId) || null;
+    } else {
+      this.selectedTeacher = null;
+    }
   }
 
   private setupFormSubscriptions(): void {
-    // Watch for teacher selection changes
-    this.bookingForm.get('teacherId')?.valueChanges.subscribe(teacherId => {
-      if (teacherId) {
-        this.selectedTeacher = this.availableTeachers.find(t => t.teacherId === +teacherId) || null;
-        this.loadAvailableTimeSlots();
-      } else {
-        this.selectedTeacher = null;
-        this.availableTimeSlots = [];
-      }
-      // Reset time slot when teacher changes
-      this.bookingForm.get('timeSlot')?.setValue('');
+    // Watch for student name changes
+    this.bookingForm.get('studentName')?.valueChanges.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(name => {
+      this.onStudentNameChange(name);
     });
 
-    // Watch for date changes
-    this.bookingForm.get('date')?.valueChanges.subscribe(() => {
-      this.loadAvailableTimeSlots();
-      this.bookingForm.get('timeSlot')?.setValue('');
+    // Watch for form changes
+    this.bookingForm.get('educationStage')?.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.onEducationStageChange();
+    });
+
+    this.bookingForm.get('grade')?.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.onGradeChange();
+    });
+
+    this.bookingForm.get('groupId')?.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.onGroupChange();
+    });
+
+    this.bookingForm.get('teacherId')?.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.onTeacherChange();
     });
   }
 
-  private loadAvailableTimeSlots(): void {
-    const teacherId = this.bookingForm.get('teacherId')?.value;
-    const date = this.bookingForm.get('date')?.value;
-    
-    if (teacherId && date) {
-      // TODO: Implement API call to get available time slots for a teacher and date
-      this.availableTimeSlots = [];
-      // Example: this.teacherService.getAvailableTimeSlots(teacherId, date).subscribe({ ... })
-    } else {
-      this.availableTimeSlots = [];
-    }
-  }
-
-  // private async getOrCreateStudent(): Promise<number> {
-  //   const studentData = {
-  //     name: this.bookingForm.get('studentName')?.value,
-  //     phone: this.bookingForm.get('studentPhone')?.value,
-  //     gender: this.bookingForm.get('studentGender')?.value,
-  //     educationStage: this.bookingForm.get('educationStage')?.value,
-  //     grade: this.bookingForm.get('grade')?.value
-  //   };
-
-  //   // try {
-  //   //   // First, try to find existing student by phone
-  //   //   // const existingStudent = await this.studentService.getStudentByPhone(studentData.phone).toPromise();
-      
-  //   //   if (existingStudent) {
-  //   //     // Update existing student if needed
-  //   //     const updatedStudent = await this.studentService.updateStudent(existingStudent.id, studentData).toPromise();
-  //   //     return updatedStudent.id;
-  //   //   } else {
-  //   //     // Create new student
-  //   //     const newStudent = await this.studentService.createStudent(studentData).toPromise();
-  //   //     return newStudent.id;
-  //   //   }
-  //   // } catch (error) {
-  //   //   console.error('Error handling student:', error);
-  //   //   throw new Error('فشل في معالجة بيانات الطالب');
-  //   // }
-  // }
-
-  // private loadInitialData() {
-  //   this.isLoading = true;
-    
-  //   // Load subjects
-  //   this.bookingService.getSubjects()
-  //     .pipe(takeUntil(this.destroy$))
-  //     .subscribe({
-  //       next: (subjects) => {
-  //         this.subjects = subjects;
-  //       },
-  //       error: (error) => {
-  //         this.showError('فشل في تحميل المواد');
-  //         console.error('Error loading subjects:', error);
-  //       }
-  //     });
-
-  //   // Load all teachers initially
-  //   this.bookingService.getTeachers()
-  //     .pipe(takeUntil(this.destroy$))
-  //     .subscribe({
-  //       next: (teachers) => {
-  //         this.teachers = teachers;
-  //         this.isLoading = false;
-  //       },
-  //       error: (error) => {
-  //         this.showError('فشل في تحميل المعلمين');
-  //         console.error('Error loading teachers:', error);
-  //         this.isLoading = false;
-  //       }
-  //     });
-  // }
-
-
-  get amount() {
-    return this.bookingForm.get('amount');
-  }
-  
-  get paidAmount() {
-    return this.bookingForm.get('paidAmount');
-  }
-  // private setupFormSubscriptions() {
-  //   // Watch for subject changes
-  //   this.bookingForm.get('subjectId')?.valueChanges
-  //     .pipe(
-  //       takeUntil(this.destroy$),
-  //       debounceTime(300),
-  //       distinctUntilChanged()
-  //     )
-  //     .subscribe(subjectId => {
-  //       // this.onSubjectChange(subjectId);
-  //     });
-
-  //   // Watch for teacher changes
-  //   this.bookingForm.get('teacherId')?.valueChanges
-  //     .pipe(
-  //       takeUntil(this.destroy$),
-  //       debounceTime(300),
-  //       distinctUntilChanged()
-  //     )
-  //     .subscribe(teacherId => {
-  //       this.onTeacherChange(teacherId);
-  //     });
-
-  //   // Watch for date changes
-  //   this.bookingForm.get('date')?.valueChanges
-  //     .pipe(
-  //       takeUntil(this.destroy$),
-  //       debounceTime(300),
-  //       distinctUntilChanged()
-  //     )
-  //     .subscribe(date => {
-  //       this.onDateChange(date);
-  //     });
-  // }
-
-
-  private onTeacherChange(teacherId: string) {
-    if (!teacherId) {
-      this.selectedTeacher = null;
+  private onStudentNameChange(name: string): void {
+    if (!name || name.length < 2) {
+      this.showStudentDropdown = false;
+      this.selectedStudent = null;
+      this.isNewStudent = true;
       return;
     }
 
-    this.selectedTeacher = this.availableTeachers.find(t => t.teacherId.toString() === teacherId) || null;
+    // Filter existing students by name
+    this.filteredStudents = this.existingStudents.filter(student =>
+      student.name.toLowerCase().includes(name.toLowerCase())
+    );
+
+    // Show dropdown if there are matching students
+    this.showStudentDropdown = this.filteredStudents.length > 0;
     
-    // Load available time slots if date is also selected
-    const selectedDate = this.bookingForm.get('date')?.value;
-    if (selectedDate) {
-      // this.loadAvailableTimeSlots(teacherId, selectedDate);
-    }
-  }
-  get groupId() {
-    return this.bookingForm.get('groupId');
-  }
-  private onDateChange(date: string) {
-    if (!date) {
-      this.availableTimeSlots = [];
-      return;
-    }
+    // Check if exact match exists
+    const exactMatch = this.existingStudents.find(student => 
+      student.name.toLowerCase() === name.toLowerCase()
+    );
 
-    const teacherId = this.bookingForm.get('teacherId')?.value;
-    if (teacherId) {
-      // this.loadAvailableTimeSlots(teacherId, date);
+    if (exactMatch) {
+      this.selectExistingStudent(exactMatch);
     } else {
-      // If no teacher selected, show default time slots
-      this.availableTimeSlots = this.defaultTimeSlots.map(slot => slot.value);
+      this.selectedStudent = null;
+      this.isNewStudent = true;
     }
   }
 
-  // private loadAvailableTimeSlots(teacherId: string, date: string) {
-  //   this.bookingService.getAvailableTimeSlots(teacherId, date)
-  //     .pipe(takeUntil(this.destroy$))
-  //     .subscribe({
-  //       next: (slots) => {
-  //         this.availableTimeSlots = slots;
-  //         // Reset time slot if current selection is not available
-  //         const currentTimeSlot = this.bookingForm.get('timeSlot')?.value;
-  //         if (currentTimeSlot && !slots.includes(currentTimeSlot)) {
-  //           this.bookingForm.get('timeSlot')?.setValue('');
-  //         }
-  //       },
-  //       error: (error) => {
-  //         // Fallback to default slots if API fails
-  //         this.availableTimeSlots = this.defaultTimeSlots.map(slot => slot.value);
-  //         console.error('Error loading available slots:', error);
-  //       }
-  //     });
-  // }
+  selectExistingStudent(student: Student): void {
+    this.selectedStudent = student;
+    this.isNewStudent = false;
+    this.showStudentDropdown = false;
+
+    // Populate form with existing student data
+    this.bookingForm.patchValue({
+      studentName: student.name,
+      studentPhone: student.phoneNumber,
+      studentGender: student.gender,
+      educationStage: student.stage,
+      grade: student.stageLevel
+    });
+
+    // Trigger stage change to update grades
+    this.onEducationStageChange();
+  }
+
+  selectNewStudent(): void {
+    this.selectedStudent = null;
+    this.isNewStudent = true;
+    this.showStudentDropdown = false;
+    
+    // Clear student fields except name
+    this.bookingForm.patchValue({
+      studentPhone: '',
+      studentGender: '',
+      educationStage: '',
+      grade: ''
+    });
+  }
 
   getInitials(name: string): string {
     if (!name) return '';
     return name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
   }
 
-  getTimeSlotLabel(value: string): string {
-    const slot = this.defaultTimeSlots.find(s => s.value === value);
-    return slot ? slot.label : value;
-  }
-
-  onSubmit() {
+  onSubmit(): void {
     if (this.bookingForm.valid && !this.isSubmitting) {
       this.isSubmitting = true;
-      
-      const formData: BookingRequest = this.bookingForm.value;
-      
-      // Validate data
-      const validationErrors = this.bookingService.validateBookingData(formData);
-      if (validationErrors.length > 0) {
-        validationErrors.forEach(error => this.showError(error));
-        this.isSubmitting = false;
-        return;
-      }
 
-      // Create booking
-      this.bookingService.createBooking(formData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (booking) => {
-            this.showSuccess('تم إنشاء الحجز بنجاح!');
-            
-            // Navigate to booking card with the new booking
-            setTimeout(() => {
-              this.router.navigate(['/booking-card'], { 
-                queryParams: { bookingId: booking.id } 
-              });
-            }, 1500);
-          },
-          error: (error) => {
-            this.showError('فشل في إنشاء الحجز. يرجى المحاولة مرة أخرى.');
-            console.error('Error creating booking:', error);
-            this.isSubmitting = false;
-          }
-        });
+      const formData = this.prepareBookingData();
+      
+      this.bookingService.createBooking(formData).pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isSubmitting = false)
+      ).subscribe({
+        next: (booking) => {
+          this.showSuccess('تم إنشاء الحجز بنجاح!');
+          setTimeout(() => {
+            this.router.navigate(['/bookings']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Error creating booking:', error);
+          this.showError('فشل في إنشاء الحجز. يرجى المحاولة مرة أخرى.');
+        }
+      });
     } else {
       this.markAllFieldsAsTouched();
       this.showError('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
     }
   }
 
-  resetForm() {
-    this.bookingForm.reset();
-    // this.selectedSubject = null;
-    this.selectedTeacher = null;
-    this.availableTeachers = [];
-    this.availableTimeSlots = [];
-    this.isSubmitting = false;
+  private prepareBookingData(): BookingRequest {
+    const formValue = this.bookingForm.value;
+    
+    const bookingData: BookingRequest = {
+      studentName: formValue.studentName,
+      studentPhone: formValue.studentPhone,
+      studentGender: formValue.studentGender,
+      educationStage: formValue.educationStage,
+      grade: formValue.grade,
+      groupId: +formValue.groupId,
+      teacherId: formValue.teacherId?.toString(),
+      date: new Date().toISOString(),
+      notes: formValue.notes || '',
+      timeSlot: '09:00',
+      teacherd: formValue.teacherId?.toString(), // or the correct teacher id field
+      educationStageLevel: formValue.grade,      // or the correct grade/level field
+      studentInfo: {
+        name: formValue.studentName,
+        phoneNumber: formValue.studentPhone,
+        gender: formValue.studentGender,
+        stage: formValue.educationStage,
+        stageLevel: formValue.grade,
+        status: 'Active'
+      }
+    };
+
+    // Add existing student ID if using existing student
+    if (this.selectedStudent) {
+      bookingData.groupId = this.selectedStudent.studentID;
+    }
+
+    return bookingData;
   }
 
-  navigateToBookingList() {
+  resetForm(): void {
+    this.bookingForm.reset();
+    this.selectedStudent = null;
+    this.selectedGroup = null;
+    this.selectedTeacher = null;
+    this.isNewStudent = true;
+    this.showStudentDropdown = false;
+    this.filteredGrades = [];
+  }
+
+  navigateToBookingList(): void {
     this.router.navigate(['/bookings']);
   }
 
-  navigateToBookingCard() {
+  navigateToBookingCard(): void {
     this.router.navigate(['/booking-card']);
   }
 
-  private markAllFieldsAsTouched() {
+  private markAllFieldsAsTouched(): void {
     Object.keys(this.bookingForm.controls).forEach(key => {
       this.bookingForm.get(key)?.markAsTouched();
     });
   }
 
-  private showSuccess(message: string) {
+  private showSuccess(message: string): void {
     this.messageService.add({
       severity: 'success',
       summary: 'نجح',
@@ -408,7 +574,7 @@ export class BookingComponent implements OnInit, OnDestroy {
     });
   }
 
-  private showError(message: string) {
+  private showError(message: string): void {
     this.messageService.add({
       severity: 'error',
       summary: 'خطأ',
@@ -417,24 +583,21 @@ export class BookingComponent implements OnInit, OnDestroy {
     });
   }
 
-  // private showInfo(message: string) {
-  //   this.messageService.add({
-  //     severity: 'info',
-  //     summary: 'معلومات',
-  //     detail: message,
-  //     life: 3000
-  //   });
-  // }
-
   // Form validation getters
   get studentName() { return this.bookingForm.get('studentName'); }
   get studentPhone() { return this.bookingForm.get('studentPhone'); }
   get studentGender() { return this.bookingForm.get('studentGender'); }
   get educationStage() { return this.bookingForm.get('educationStage'); }
   get grade() { return this.bookingForm.get('grade'); }
-  get subjectId() { return this.bookingForm.get('subjectId'); }
+  get groupId() { return this.bookingForm.get('groupId'); }
   get teacherId() { return this.bookingForm.get('teacherId'); }
-  get date() { return this.bookingForm.get('date'); }
-  get timeSlot() { return this.bookingForm.get('timeSlot'); }
+  get amount() { return this.bookingForm.get('amount'); }
+  get paidAmount() { return this.bookingForm.get('paidAmount'); }
   get notes() { return this.bookingForm.get('notes'); }
+
+  // Getter for loading state
+  get loading(): boolean {
+    return this.loadingStates.groups;
+  }
+
 }

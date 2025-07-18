@@ -135,8 +135,8 @@ export class StudentListComponent implements OnInit {
       // Filter by status
       const matchesStatus =
         !this.selectedStatus ||
-        (this.selectedStatus.value === "active" && student.egazaCode) ||
-        (this.selectedStatus.value === "inactive" && !student.egazaCode)
+        (this.selectedStatus.value === "active" && student.name) ||
+        (this.selectedStatus.value === "inactive" && !student.name)
 
       // Filter by group
       const matchesGroup = !this.selectedGroup || (student.group && student.group.groupID === Number(this.selectedGroup.value))

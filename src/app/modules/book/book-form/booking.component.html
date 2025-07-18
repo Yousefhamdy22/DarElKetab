@@ -1,4 +1,4 @@
-<!-- booking.component.html - Pure Tailwind CSS with Emerald Theme -->
+<!-- booking.component.html - Updated with API Integration -->
 <div class="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-4 md:p-6" dir="rtl">
   
   <!-- Loading Overlay -->
@@ -62,19 +62,64 @@
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            <!-- Student Name -->
-            <div class="space-y-2">
+            <!-- Student Name with Dropdown -->
+            <div class="space-y-2 relative">
               <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
                 <i class="pi pi-user text-emerald-600"></i>
                 اسم الطالب <span class="text-red-500">*</span>
               </label>
-              <input 
-                type="text"
-                formControlName="studentName"
-                placeholder="أدخل الاسم الكامل"
-                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
-                [class.border-red-500]="studentName?.invalid && studentName?.touched"
-                [disabled]="isSubmitting">
+              <div class="relative">
+                <input 
+                  type="text"
+                  formControlName="studentName"
+                  placeholder="أدخل الاسم الكامل"
+                  class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  [class.border-red-500]="studentName?.invalid && studentName?.touched"
+                  [disabled]="isSubmitting"
+                  autocomplete="off">
+                
+                <!-- Student Suggestions Dropdown -->
+                <div *ngIf="showStudentDropdown && filteredStudents.length > 0" 
+                     class="absolute top-full left-0 right-0 z-10 bg-white border border-emerald-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
+                  <div class="p-2 border-b border-gray-100 bg-gray-50">
+                    <span class="text-xs font-medium text-gray-600">الطلاب الموجودين:</span>
+                  </div>
+                  <div *ngFor="let student of filteredStudents" 
+                       (click)="selectExistingStudent(student)"
+                       class="flex items-center gap-3 p-3 hover:bg-emerald-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                      {{ getInitials(student.name) }}
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-medium text-gray-800">{{ student.name }}</div>
+                      <div class="text-xs text-gray-500">{{ student.phoneNumber }} - {{ student.stage }}</div>
+                    </div>
+                  </div>
+                  <div class="p-2 border-t border-gray-100">
+                    <button type="button" 
+                            (click)="selectNewStudent()"
+                            class="w-full text-left text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                      + إضافة طالب جديد
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected Student Info -->
+              <div *ngIf="selectedStudent && !isNewStudent" class="mt-3 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-check-circle text-emerald-600"></i>
+                    <span class="text-sm font-medium text-emerald-800">طالب موجود</span>
+                  </div>
+                  <button type="button" 
+                          (click)="selectNewStudent()"
+                          class="text-xs text-emerald-600 hover:text-emerald-700 underline">
+                    تغيير إلى طالب جديد
+                  </button>
+                </div>
+              </div>
+
               <div *ngIf="studentName?.invalid && studentName?.touched" class="flex items-center gap-2 text-red-600 text-sm">
                 <i class="pi pi-exclamation-circle"></i>
                 <span *ngIf="studentName?.errors?.['required']">اسم الطالب مطلوب</span>
@@ -126,49 +171,54 @@
               </div>
             </div>
 
-            <!-- Education Stage -->
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <i class="pi pi-graduation-cap text-emerald-600"></i>
-                المرحلة الدراسية <span class="text-red-500">*</span>
-              </label>
-              <select 
-                formControlName="educationStage" 
-                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
-                [class.border-red-500]="educationStage?.invalid && educationStage?.touched"
-                [disabled]="isSubmitting">
-                <option value="">اختر المرحلة</option>
-                <option *ngFor="let stage of educationStages" [value]="stage.value">
-                  {{ stage.label }}
-                </option>
-              </select>
-              <div *ngIf="educationStage?.invalid && educationStage?.touched" class="flex items-center gap-2 text-red-600 text-sm">
-                <i class="pi pi-exclamation-circle"></i>
-                <span>المرحلة الدراسية مطلوبة</span>
-              </div>
-            </div>
+<!-- Education Stage -->
+<div class="space-y-2">
+  <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+    <i class="pi pi-graduation-cap text-emerald-600"></i>
+    المرحلة الدراسية <span class="text-red-500">*</span>
+  </label>
+  <select 
+    formControlName="educationStage" 
+    class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+    [class.border-red-500]="educationStage?.invalid && educationStage?.touched"
+    [disabled]="isSubmitting"
+    (change)="onEducationStageChange()">
+    <option value="">اختر المرحلة</option>
+    <option *ngFor="let stage of educationStages" [value]="stage.value">
+      {{ stage.label }}
+    </option>
+  </select>
+  <div *ngIf="educationStage?.invalid && educationStage?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+    <i class="pi pi-exclamation-circle"></i>
+    <span>المرحلة الدراسية مطلوبة</span>
+  </div>
+</div>
 
-            <!-- Grade -->
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <i class="pi pi-bookmark text-emerald-600"></i>
-                الصف <span class="text-red-500">*</span>
-              </label>
-              <select 
-                formControlName="grade" 
-                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
-                [class.border-red-500]="grade?.invalid && grade?.touched"
-                [disabled]="isSubmitting">
-                <option value="">اختر الصف</option>
-                <option *ngFor="let grade of grades" [value]="grade.value">
-                  {{ grade.label }}
-                </option>
-              </select>
-              <div *ngIf="grade?.invalid && grade?.touched" class="flex items-center gap-2 text-red-600 text-sm">
-                <i class="pi pi-exclamation-circle"></i>
-                <span>الصف مطلوب</span>
-              </div>
-            </div>
+<!-- Grade -->
+<div class="space-y-2" *ngIf="filteredGrades.length > 0">
+  <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+    <i class="pi pi-bookmark text-emerald-600"></i>
+    الصف <span class="text-red-500">*</span>
+  </label>
+  <select 
+    formControlName="grade" 
+    class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+    [class.border-red-500]="grade?.invalid && grade?.touched"
+    [disabled]="isSubmitting">
+    <option value="">اختر الصف</option>
+    <option *ngFor="let gradeOption of filteredGrades" [value]="gradeOption.value">
+      {{ gradeOption.label }}
+    </option>
+  </select>
+  <div *ngIf="grade?.invalid && grade?.touched" class="flex items-center gap-2 text-red-600 text-sm">
+    <i class="pi pi-exclamation-circle"></i>
+    <span>الصف مطلوب</span>
+  </div>
+
+
+</div>
+
+
           </div>
         </div>
       </div>
@@ -182,7 +232,7 @@
             </div>
             <div>
               <h3 class="text-lg font-bold text-gray-800 mb-1">معلومات الحجز</h3>
-              <p class="text-sm text-gray-600">تفاصيل المادة والمعلم والموعد والمبلغ</p>
+              <p class="text-sm text-gray-600">تفاصيل المجموعة والمعلم والمبلغ</p>
             </div>
           </div>
         </div>
@@ -190,28 +240,66 @@
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-
+            <!-- Group Selection -->
             <div class="space-y-2">
               <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
                 <i class="pi pi-users text-emerald-600"></i>
                 المجموعة <span class="text-red-500">*</span>
               </label>
+              
+              <!-- Loading State -->
+              <div *ngIf="loading" class="flex items-center justify-center p-4">
+                <i class="pi pi-spinner pi-spin text-emerald-600 mr-2"></i>
+                <span class="text-gray-600">جاري تحميل المجموعات...</span>
+              </div>
+            
+              <!-- Groups Dropdown -->
               <select 
                 formControlName="groupId" 
                 class="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-300 disabled:bg-gray-50 disabled:cursor-not-allowed"
                 [class.border-red-400]="groupId?.invalid && groupId?.touched"
-                [disabled]="isSubmitting || isLoading">
-                <option value="">اختر المجموعة</option>
-                <option *ngFor="let group of groups" [value]="group.id">
-                  {{ group.name }}
+                [disabled]="isSubmitting || loading || !educationStage?.value || !grade?.value || !availableGroups.length">
+                <option value="">
+                  {{ !educationStage?.value || !grade?.value ? 'اختر المرحلة والصف أولاً' : 
+                     loading ? 'جاري التحميل...' : 
+                     !availableGroups.length ? 'لا توجد مجموعات متاحة' : 'اختر المجموعة' }}
+                </option>
+                <option *ngFor="let group of availableGroups" [value]="group.groupID">
+                  {{ group.groupName }} 
+                  <span *ngIf="group.stageLevel">({{ group.stage }} - الصف {{ group.stageLevel }})</span>
                 </option>
               </select>
               
+              <!-- Selected Group Info -->
+              <div *ngIf="selectedGroup" class="mt-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-700 text-white text-sm font-semibold">
+                    <i class="pi pi-users"></i>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-gray-800 mb-1">{{ selectedGroup.groupName }}</div>
+                    <!-- <div class="text-xs text-gray-500">
+                      {{ selectedGroup.stage }} - الصف {{ selectedGroup.stageLevel }}
+                      <span *ngIf="selectedGroup.subject" class="mr-2">| المادة: {{ selectedGroup.subject }}</span>
+                    </div> -->
+                  </div>
+                </div>//
+              </div>
+              
+              <!-- Error Messages -->
               <div *ngIf="groupId?.invalid && groupId?.touched" class="flex items-center gap-2 text-red-600 text-sm">
                 <i class="pi pi-exclamation-circle"></i>
                 <span>المجموعة مطلوبة</span>
               </div>
+              
+              <!-- API Error Message -->
+              <div *ngIf="groupsError" class="flex items-center gap-2 text-red-600 text-sm">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>حدث خطأ أثناء تحميل المجموعات. يرجى المحاولة لاحقاً.</span>
+              </div>
             </div>
+
+            
 
             <!-- Teacher Selection -->
             <div class="space-y-2">
@@ -223,8 +311,8 @@
                 formControlName="teacherId" 
                 class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
                 [class.border-red-500]="teacherId?.invalid && teacherId?.touched"
-                [disabled]="isSubmitting || isLoading ">
-                <!-- <option value="">{{ !selectedSubject ? 'اختر المادة أولاً' : 'اختر المعلم' }}</option> -->
+                [disabled]="isSubmitting || isLoading || !groupId?.value">
+                <option value="">{{ !groupId?.value ? 'اختر المجموعة أولاً' : 'اختر المعلم' }}</option>
                 <option *ngFor="let teacher of availableTeachers" [value]="teacher.teacherId">
                   {{ teacher.name }}
                 </option>
@@ -239,7 +327,7 @@
                   <div>
                     <div class="font-semibold text-gray-800 mb-1">{{ selectedTeacher.name }}</div>
                     <div class="text-sm text-gray-600 mb-1">{{ selectedTeacher.groupName }}</div>
-                    <div class="text-xs text-gray-500">التخصص: {{ selectedTeacher.status }}</div>
+                    <div class="text-xs text-gray-500">الحالة: {{ selectedTeacher.status }}</div>
                   </div>
                 </div>
               </div>
@@ -247,47 +335,6 @@
               <div *ngIf="teacherId?.invalid && teacherId?.touched" class="flex items-center gap-2 text-red-600 text-sm">
                 <i class="pi pi-exclamation-circle"></i>
                 <span>المعلم مطلوب</span>
-              </div>
-            </div>
-
-            <!-- Date Selection -->
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <i class="pi pi-calendar text-emerald-600"></i>
-                التاريخ <span class="text-red-500">*</span>
-              </label>
-              <input 
-                type="date"
-                formControlName="date"
-                [min]="minDate.toISOString().split('T')[0]"
-                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
-                [class.border-red-500]="date?.invalid && date?.touched"
-                [disabled]="isSubmitting">
-              <div *ngIf="date?.invalid && date?.touched" class="flex items-center gap-2 text-red-600 text-sm">
-                <i class="pi pi-exclamation-circle"></i>
-                <span>التاريخ مطلوب</span>
-              </div>
-            </div>
-
-            <!-- Time Selection -->
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <i class="pi pi-clock text-emerald-600"></i>
-                الوقت <span class="text-red-500">*</span>
-              </label>
-              <select 
-                formControlName="timeSlot" 
-                class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
-                [class.border-red-500]="timeSlot?.invalid && timeSlot?.touched"
-                [disabled]="isSubmitting || !selectedTeacher || !date?.value">
-                <option value="">{{ !selectedTeacher || !date?.value ? 'اختر المعلم والتاريخ أولاً' : 'اختر الوقت' }}</option>
-                <option *ngFor="let slot of availableTimeSlots" [value]="slot">
-                  {{ getTimeSlotLabel(slot) }}
-                </option>
-              </select>
-              <div *ngIf="timeSlot?.invalid && timeSlot?.touched" class="flex items-center gap-2 text-red-600 text-sm">
-                <i class="pi pi-exclamation-circle"></i>
-                <span>الوقت مطلوب</span>
               </div>
             </div>
 
@@ -341,7 +388,7 @@
               </div>
               
               <!-- Remaining Amount Display -->
-              <div *ngIf="amount?.value && paidAmount?.value" class="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+              <div *ngIf="amount?.value && paidAmount?.value !== null" class="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-amber-700 font-medium">المبلغ المتبقي:</span>
                   <span class="text-amber-800 font-bold">{{ (amount?.value - paidAmount?.value) | number:'1.2-2':'ar-SA' }} ريال</span>
@@ -363,10 +410,8 @@
               class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
               [disabled]="isSubmitting"></textarea>
           </div>
+
         </div>
-
-
-        
       </div>
 
       <!-- Action Buttons -->

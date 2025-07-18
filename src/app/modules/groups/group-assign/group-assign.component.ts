@@ -132,7 +132,7 @@ export class GroupAssignComponent implements OnInit {
       gender: ['', Validators.required],
       address: ['', Validators.maxLength(200)],
       phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
-      egazaCode: ['', Validators.maxLength(20)],
+      // name: ['', Validators.maxLength(20)],
       notes: [''],
       status: ['active'],
       
@@ -1082,7 +1082,7 @@ deleteExam(): void {
   //      gender: ['Male', Validators.required],
   //      registrationDate: [new Date()],
   //      groupID: [null, Validators.required],
-  //      egazaCode: [''],
+  //      name: [''],
   //      isActive: [true],
   //      memorizedParts: [0],
   //      memorizedPercentage: [0]
@@ -1174,11 +1174,11 @@ deleteExam(): void {
        name: student.name,
        
        phone: student.phoneNumber,
-       address: student.address,
+       address: student.name,
        gender: student.gender,
        registrationDate: new Date(student.registrationDate),
        groupID: student.groupID,
-       egazaCode: student.egazaCode,
+      //  name: student.name,
        isActive: student.isActive,
      
      });

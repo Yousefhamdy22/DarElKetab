@@ -27,6 +27,7 @@ import { TeacherComponent } from "./teacher.component";
 import { SessionschedulComponent } from "../sessionschedul/sessionschedul.component";
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InputNumberModule } from 'primeng/inputnumber';
+
 @NgModule({
     declarations:[
    TeacherComponent ,

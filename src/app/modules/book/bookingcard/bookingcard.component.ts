@@ -27,6 +27,7 @@ export enum BookingStatus {
   providers: [MessageService]
 })
 export class BookingCardComponent implements OnInit, OnDestroy {
+  
   public BookingStatus = BookingStatus;
   selectedBookingId = '';
   selectedBooking: Booking | null = null;
@@ -48,7 +49,7 @@ export class BookingCardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadBookings();
     this.checkRouteParams();
-    this.subscribeToBookingUpdates();
+    // this.subscribeToBookingUpdates();
   }
 
   ngOnDestroy() {
@@ -108,23 +109,23 @@ export class BookingCardComponent implements OnInit, OnDestroy {
       });
   }
 
-  private subscribeToBookingUpdates() {
-    this.bookingService.bookings$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(bookings => {
-        this.bookings = bookings.filter(b => b.status !== BookingStatus.Cancelled);
-        this.updateBookingOptions();
-      });
+  // private subscribeToBookingUpdates() {
+  //   this.bookingService.bookings$
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe(bookings => {
+  //       this.bookings = bookings.filter(b => b.status !== BookingStatus.Cancelled);
+  //       this.updateBookingOptions();
+  //     });
 
-    this.bookingService.selectedBooking$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(booking => {
-        if (booking) {
-          this.selectedBooking = booking;
-          this.selectedBookingId = booking.id.toString();
-        }
-      });
-  }
+  //   this.bookingService.selectedBooking$
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe(booking => {
+  //       if (booking) {
+  //         this.selectedBooking = booking;
+  //         this.selectedBookingId = booking.id.toString();
+  //       }
+  //     });
+  // }
 
   private updateBookingOptions() {
     this.bookingOptions = this.bookings.map(booking => ({

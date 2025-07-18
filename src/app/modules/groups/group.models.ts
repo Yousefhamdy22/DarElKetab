@@ -9,7 +9,10 @@ export interface Group {
   description?: string;
   teacherId: number;
   teacher?: Teacher;
+  scheduleDay: string,
   maxStudentNumber: number;
+  stage:string,
+  stageLevel:string,
   startDate: Date;
   endDate: Date;
   students?: Student[];

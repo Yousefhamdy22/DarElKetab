@@ -53,7 +53,7 @@ export class StudentFormComponent implements OnInit , OnDestroy {
       gender: ["Male", Validators.required],          // Maps to 'Gender' (fixed case)
       registrationDate: [new Date()],                 // Maps to 'RegistrationDate'
       groupID: [null, Validators.required],           // Maps to 'GroupID' (fixed name)
-      egazaCode: [""],                                // Maps to 'EgazaCode'
+      // name: [""],                                // Maps to 'name'
       isActive: [true]                                // Maps to 'IsActive'
     });
   }
@@ -103,7 +103,7 @@ export class StudentFormComponent implements OnInit , OnDestroy {
       name: String(this.studentForm.value.name).trim(),
       birthDate: birthDate ? new Date(birthDate) : undefined,
       gender: String(this.studentForm.value.gender),
-      egazaCode: this.studentForm.value.egazaCode || "",
+      // name: this.studentForm.value.name || "",
       address: this.studentForm.value.address || "",
       phoneNumber: this.studentForm.value.phone,
       registrationDate: new Date(registrationDate),

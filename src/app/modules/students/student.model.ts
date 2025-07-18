@@ -7,9 +7,11 @@ export interface Student {
     name: string;
     birthDate?: Date;
     gender: string;
-    address?: string;
+  //  address?: string;
     phoneNumber: string;
-    egazaCode: string;
+  //  name: string;
+    stage:string,
+    stageLevel:string,
     notes?: string;
     status?: string; 
     registrationDate: Date;
@@ -52,7 +54,7 @@ export interface Student {
     gender: string;
     address?: string;
     phoneNumber: string;
-    egazaCode: string;
+   
     registrationDate: Date;
     groupID?: number;
     group?: Group;

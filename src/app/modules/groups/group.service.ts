@@ -8,6 +8,18 @@ import { Observable, throwError as rxjsThrowError } from "rxjs";
 import { catchError } from "rxjs/operators";
 
 
+interface GroupFormData {
+  teacherId: number;
+  groupName: string;
+  description: string;
+  maxCapacity: number;
+  startDate: string;
+  scheduleDay: string;
+  startTime: string;
+  educationStage: string;
+  gradeLevel: number;
+  createdBy: string;
+}
 @Injectable({
     providedIn: "root",
 })
@@ -32,13 +44,12 @@ export class GroupService {
     }
 
     // Create a new group
-    createGroup(data: Group): Observable<Group> {
-        return this.http.post<Group>(`${this.apiBaseurl}/Groups`, data);
+    createGroup(groupData: GroupFormData): Observable<Group> {
+        return this.http.post<Group>(`${this.apiBaseurl}/Groups`, groupData);
     }
-
-    // Update an existing group
-    updateGroup(id: number, data: Group): Observable<Group> {
-        return this.http.put<Group>(`${this.apiBaseurl}/Groups/${id}`, data);
+  
+    updateGroup(id: number,groupData: GroupFormData): Observable<Group> {
+        return this.http.put<Group>(`${this.apiBaseurl}/Groups/${id}`, groupData);
     }
     
     // Delete a group
@@ -90,6 +101,13 @@ export class GroupService {
     // Delete a teacher
     deleteTeacher(id: number): Observable<any> {
         return this.http.delete(`${this.apiBaseurl}/Teachers/${id}`);
+    }
+
+    // getGroupsByStageAndGrade
+    //loadTeachersByGroup
+
+ getGroupsByStageAndGrade(stage: string, stageLevel: string): Observable<Group[]> {
+        return this.http.get<Group[]>(`${this.apiBaseurl}/by-stage-grade?stage=${stage}&stageLevel=${stageLevel}`);
     }
 
 }

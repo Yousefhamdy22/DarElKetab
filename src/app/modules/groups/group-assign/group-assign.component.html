@@ -212,8 +212,8 @@
                   <p-tag [severity]="student.isActive ? 'success' : 'danger'" 
                     [value]="student.isActive ? 'نشط' : 'غير نشط'"
                     [icon]="student.isActive ? 'pi pi-check' : 'pi pi-times'"></p-tag>
-                  <div *ngIf="student.egazaCode" class="mt-1">
-                    <p-tag severity="info" [value]="student.egazaCode" icon="pi pi-id-card"></p-tag>
+                  <div *ngIf="student.name" class="mt-1">
+                    <p-tag severity="info" [value]="student.name" icon="pi pi-id-card"></p-tag>
                   </div>
                 </td>
                 
@@ -324,8 +324,8 @@
       
             <!-- Egaza Info -->
             <div class="field col-12">
-              <label for="egazaCode">كود الإجازة (إن وجد)</label>
-              <input pInputText id="egazaCode" formControlName="egazaCode" placeholder="كود الإجازة">
+              <label for="name">كود الإجازة (إن وجد)</label>
+              <input pInputText id="name" formControlName="name" placeholder="كود الإجازة">
             </div>
           </form>
       
@@ -368,9 +368,9 @@
                     <p-tag [severity]="selectedStudent.isActive ? 'success' : 'danger'" 
                       [value]="selectedStudent.isActive ? 'نشط' : 'غير نشط'"></p-tag>
                   </div>
-                  <div class="flex justify-between py-2 border-b" *ngIf="selectedStudent.egazaCode">
+                  <div class="flex justify-between py-2 border-b" *ngIf="selectedStudent.name">
                     <span class="font-medium">كود الإجازة:</span>
-                    <p-tag severity="info">{{selectedStudent.egazaCode}}</p-tag>
+                    <p-tag severity="info">{{selectedStudent.name}}</p-tag>
                   </div>
                 </div>
               </div>
@@ -384,7 +384,7 @@
                     <div class="col-12 md:col-6">
                       <h4 class="font-bold mb-2">معلومات الاتصال</h4>
                       <p><i class="pi pi-phone mr-2"></i> {{selectedStudent.phoneNumber || 'غير متوفر'}}</p>
-                      <p><i class="pi pi-map-marker mr-2"></i> {{selectedStudent.address || 'غير متوفر'}}</p>
+                      <p><i class="pi pi-map-marker mr-2"></i> {{selectedStudent.name || 'غير متوفر'}}</p>
                     </div>
                     <div class="col-12 md:col-6">
                       <h4 class="font-bold mb-2">معلومات التسجيل</h4>
