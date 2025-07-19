@@ -39,8 +39,8 @@ const routes: Routes = [
     ,{path: 'gruops' , component: GroupListComponent}
     ,{path: 'group/add' , component: GroupFormComponent}
     ,{path: 'dailyattandance' , component: DailyAttendanceComponent}
-    ,{path:'student/repo' , component:StudentReportComponent}
-    ,{path:'groups/repo' , component: GroupReportComponent}
+    ,{path:'studentrepo' , component:StudentReportComponent}
+    ,{path:'groupsrepo' , component: GroupReportComponent}
     ,{path: 'group/details/:id' , component: GroupAssignComponent}
     ,{path: 'group/shcedu' , component: GroupScheduleComponent}
     ,{path: 'teacher' , component: TeacherComponent}

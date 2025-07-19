@@ -151,12 +151,7 @@ export class SessionschedulComponent implements OnInit {
      { label: "الصف الرابع", value: 4 },
      { label: "الصف الخامس", value: 5 },
      { label: "الصف السادس", value: 6 },
-     { label: "الصف السابع", value: 7 },
-     { label: "الصف الثامن", value: 8 },
-     { label: "الصف التاسع", value: 9 },
-     { label: "الصف العاشر", value: 10 },
-     { label: "الصف الحادي عشر", value: 11 },
-     { label: "الصف الثاني عشر", value: 12 },
+ 
    ])
  
    // Loading states
@@ -298,42 +293,60 @@ export class SessionschedulComponent implements OnInit {
      })
    }
  
-  //  loadGroups(): void {
-  //   console.log("Starting to load groups...");
-  //   this.isLoadingGroups.set(true);
-  //   this.groupService.getGroups().subscribe({
-  //     next: (groups) => {
-  //       console.log("Groups received from service:", groups);
-  //       const processedGroups = Array.isArray(groups) ? groups : [];
-  //       console.log("Processed groups:", processedGroups);
-  //       this.groups.set(processedGroups);
-  //       this.isLoadingGroups.set(false);
-  //     },
-  //     error: (error) => {
-  //       console.error("Full error object:", error);
-  //       // ... rest of error handling
-  //     }
-  //   });
-  // }
   clearDateRange() {
     this.dateRange.set([]);
     this.onDateFilter();
   }
   
   // Calendar navigation methods
-  prevMonth() {
-    // Implement month navigation
-  }
+ 
+
+getSelectedGroupName(): string {
+  if (!this.selectedGroupId) return '';
+  const group = this.groups().find(g => g.groupID === this.selectedGroupId());
+  return group?.groupName || '';
+}
+
+loadGroups(): void {
+  this.isLoadingGroups.set(true);
   
-  nextMonth() {
-    // Implement month navigation
-  }
-loadGroups() {
-  this.groupService.getGroups().subscribe({
-    next: (res) => {
-      this.groups.set(res || []);
+  console.log('Loading groups...');
+  
+  this.groupService.getGroupForSesssion().subscribe({
+    next: (groupsArray) => {
+      console.log("Processed groups array:", groupsArray);
+      console.log("Groups count:", groupsArray.length);
+      
+      if (groupsArray.length === 0) {
+        console.warn('No groups found in response');
+        // You can show a user-friendly message here
+        this.showNoDataMessage();
+      }
+      
+      this.groups.set(groupsArray);
+      this.isLoadingGroups.set(false);
+    },
+    error: (error) => {
+      console.error("API Error:", error);
+      this.groups.set([]);
+      this.isLoadingGroups.set(false);
+      this.showErrorMessage('Failed to load groups');
     }
-  });}
+  });
+}
+
+// Helper methods for user feedback
+  private showNoDataMessage(): void {
+ 
+  console.log('Show: No groups available');
+ 
+ }
+
+  private showErrorMessage(message: string): void {
+
+  console.log('Show error:', message);
+ 
+  }
    loadTeachers(): void {
      this.isLoadingTeachers.set(true)
      this.teacherService.getAllTeachers().subscribe({

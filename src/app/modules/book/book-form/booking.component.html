@@ -182,7 +182,9 @@
     class="w-full px-4 py-3 border border-emerald-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
     [class.border-red-500]="educationStage?.invalid && educationStage?.touched"
     [disabled]="isSubmitting"
-    (change)="onEducationStageChange()">
+    (change)="onEducationStageChange()"
+    (focus)="loadGroup()"
+    >
     <option value="">اختر المرحلة</option>
     <option *ngFor="let stage of educationStages" [value]="stage.value">
       {{ stage.label }}

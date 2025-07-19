@@ -438,6 +438,7 @@
 
           <!-- Group Selection in Dialog -->
           <!-- <div class="space-y-2">
+
             <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <i class="pi pi-users text-emerald-600"></i>
               المجموعة <span class="text-red-500">*</span>
@@ -471,14 +472,23 @@
               </small>
             }
           </div> -->
-          <p-dropdown [options]="groups()" [(ngModel)]="selectedGroupId" optionLabel="groupName" optionValue="id"
-            placeholder="جميع المجموعات" [showClear]="true" [appendTo]="'body'">
+
+
+          <p-dropdown [options]="groups()"      formControlName="groupId"   optionLabel="groupName" optionValue="id"
+            placeholder="جميع المجموعات" [showClear]="true" [appendTo]="'body'"
+            loading="isLoadingGroups()"
+            
+            >
             <ng-template pTemplate="empty">
               @if (groups().length === 0) {
               <div class="p-2">لا توجد بيانات</div>
               }
             </ng-template>
           </p-dropdown>
+
+
+
+          
           <!-- Education Stage in Dialog -->
           <div class="space-y-2">
             <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
@@ -734,7 +744,7 @@
           <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl p-6">
             <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <i class="pi pi-calendar text-orange-600"></i>
-              تواريخ الحصص ({{ selectedSessionDetails()!.sessionDate?.length || 0 }})
+              تواريخ الحصص ({{ selectedSessionDetails()!.sessionDate.length || 0 }})
             </h4>
 
             @if (selectedSessionDetails()!.sessionDate) {

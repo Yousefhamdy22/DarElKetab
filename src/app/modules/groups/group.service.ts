@@ -5,8 +5,31 @@ import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environment/environment";
 import { Group , ApiResponse } from "./group.models";
 import { Observable, throwError as rxjsThrowError } from "rxjs";
-import { catchError } from "rxjs/operators";
+import { catchError, map, of, tap } from 'rxjs';
 
+export interface groupFilterDto
+{
+  stageId: number | null;
+  levelId: number | null;
+
+}
+export interface GroupResponseDto {
+  groupId: number;
+  teacherId: number;
+  groupName: string;
+  description: string;
+  maxCapacity: number;
+  startDate: string; // ISO format date string
+  scheduleDay: string | null;
+  startTime: string | null;
+  status: 'Active' | 'Inactive' | 'Archived'; // Adjust based on possible status values
+  createdAt: string; // ISO format date string
+  educationStage: number; // Assuming this is an enum/numeric value
+  gradeLevel: number;
+  memberCount: number;
+  teacherName: string | null;
+  createdByUserName: string | null;
+}
 
 interface GroupFormData {
   teacherId: number;
@@ -25,6 +48,7 @@ interface GroupFormData {
 })
 export class GroupService {
     private readonly apiBaseurl = `${environment.apiUrl}/Groups`;
+    
 
     constructor(private http: HttpClient) {}
 
@@ -37,7 +61,36 @@ export class GroupService {
           })
         );
       }
-
+     
+      // Service Method
+getGroupForSesssion(): Observable<Group[]> {
+  console.log('API URL:', this.apiBaseurl); // Debug: Check the URL
+  
+  return this.http.get<Group[]>(`${this.apiBaseurl}`).pipe(
+    tap(response => {
+      console.log('Raw backend response:', response);
+      console.log('Response type:', typeof response);
+      console.log('Is array:', Array.isArray(response));
+    }),
+    map(response => {
+      // Handle different response formats
+      if (Array.isArray(response)) {
+        return response;
+      } else if (response && typeof response === 'object') {
+        // If response is an object, check if data is nested
+        const data = (response as any).data || (response as any).groups || (response as any).result;
+        return Array.isArray(data) ? data : [];
+      }
+      return [];
+    }),
+    catchError(error => {
+      console.error('Error in getGroups:', error);
+      console.error('Error status:', error.status);
+      console.error('Error message:', error.message);
+      return of([]); // Return empty array on error
+    })
+  );
+}
     // Get a specific group by ID
     getGroup(id: number): Observable<Group> {
         return this.http.get<Group>(`${this.apiBaseurl}/${id}`);
@@ -109,6 +162,41 @@ export class GroupService {
  getGroupsByStageAndGrade(stage: string, stageLevel: string): Observable<Group[]> {
         return this.http.get<Group[]>(`${this.apiBaseurl}/by-stage-grade?stage=${stage}&stageLevel=${stageLevel}`);
     }
+    // Booking/groups_
+    getGropsByStageAndStageLevel(params?: groupFilterDto): Observable<GroupResponseDto[]> {
+      const httpParams: any = {};
+      if (params) {
+        if (params.stageId !== null && params.stageId !== undefined) httpParams.stageId = params.stageId;
+        if (params.levelId !== null && params.levelId !== undefined) httpParams.levelId = params.levelId;
+      }
+      return this.http.get<GroupResponseDto[]>('http://localhost:5079/api/Booking/groups', {
+        params: httpParams,
+      }).pipe(
+        catchError((err) => {
+          console.log(err);
+          return throwError(() => new Error(err));
+        }),
+      );
+    }
+
+    // getGropsByStageAndStageLevel(params?: groupFilterDto): Observable<GroupResponseDto> {
+    //   // Remove nulls or convert to empty string
+    //   const httpParams: any = {};
+    //   if (params) {
+    //     if (params.stageId !== null && params.stageId !== undefined) httpParams.stageId = params.stageId;
+    //     if (params.levelId !== null && params.levelId !== undefined) httpParams.levelId = params.levelId;
+    //   }
+    //   return this.http
+    //     .get<GroupResponseDto>(this.apiBaseurl + '/filter', {
+    //       params: httpParams,
+    //     })
+    //     .pipe(
+    //       catchError((err) => {
+    //         console.log(err);
+    //         return throwError(() => new Error(err));
+    //       }),
+    //     );
+    // }
 
 }
 function throwError(errorFactory: () => Error): Observable<never> {

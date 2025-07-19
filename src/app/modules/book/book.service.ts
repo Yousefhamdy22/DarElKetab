@@ -6,6 +6,7 @@ import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environment/environment';
 import { Booking } from './book.models';
 import { Teacher } from '../teacher/teacher.model';
+import { Group } from '../groups/group.models';
 
 export interface BookingRequest {
   studentName: string;
@@ -29,7 +30,21 @@ export interface BookingRequest {
     status: 'Active'
   },
 }
+export interface BookingFilterRequest {
+  stageId?: number;
+  stageLevelId?: number;
+  groupId?: number;
+}
+export interface EnumDto {
+  id: number;
+  name: string;
+}
 
+export interface BookingFilterResponse {
+  stages: EnumDto[];
+  stageLevels: EnumDto[];
+  sessions: any[]; // Replace 'any' with proper Session DTO if available
+}
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -93,6 +108,31 @@ export class BookingService {
         }),
         catchError(this.handleError)
       );
+  }
+  // getBookingFilters(request: BookingFilterRequest): Observable<BookingFilterResponse> {
+  //   return this.http.get<BookingFilterResponse>(`${this.apiBadeUrl}/filters`, {
+  //     params: this.createParams(request)
+  //   }).pipe(
+  //     catchError(this.handleError)
+  //   );
+  // }
+
+  getEducationStages(): Observable<EnumDto[]> {
+    return this.http.get<EnumDto[]>(`${this.apiBadeUrl}/stages`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getStageLevels(stageId: number): Observable<EnumDto[]> {
+    return this.http.get<EnumDto[]>(`${this.apiBadeUrl}/stages/${stageId}/levels`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getGroups(stageId: number, levelId: number): Observable<Group[]> {
+    return this.http.get<Group[]>(`${this.apiBadeUrl}/stages/${stageId}/levels/${levelId}/groups`).pipe(
+      catchError(this.handleError)
+    );
   }
 
  

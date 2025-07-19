@@ -18,7 +18,7 @@ import { StudentService } from '../../students/student.service';
 import { TeacherService } from '../../teacher/teacher.service';
 import { Group } from '../../groups/group.models';
 import { Student } from '../../students/student.model';
-import { GroupService } from '../../groups/group.service';
+import { groupFilterDto, GroupResponseDto, GroupService } from '../../groups/group.service';
 
 @Component({
   selector: 'app-booking',
@@ -69,13 +69,13 @@ export class BookingComponent implements OnInit {
   };
 
   
-  selectedStage: string | null = null;
-  selectedGrade: string | null = null;
+  selectedStage: number | null = null;
+  selectedGrade: number | null = null;
   filteredGrades: any[] = [];
 
   educationStages = [
-    { label: 'الابتدائية', value: 'primary' },
-    { label: 'الاعدادية', value: 'middle' },
+    { label: 'الابتدائية', value: 1 },
+    { label: 'الاعدادية', value: 2 },
   
   ];
 
@@ -87,21 +87,43 @@ export class BookingComponent implements OnInit {
     { label: 'الخامس', value: '5' },
     { label: 'السادس', value: '6' }
   ];
+
+
+  // onEducationStageChange() {
+  //   const selectedStage = this.bookingForm.get('educationStage')?.value;
+  //   console.log('Selected Stage:', selectedStage); // Debug log
+  
+  //   if (selectedStage === 1) {
+  //     this.filteredGrades = this.grades.filter(grade => parseInt(grade.value) <= 6);
+  //   } 
+  //   else if (selectedStage === 2) {
+  //     this.filteredGrades = this.grades.filter(grade => parseInt(grade.value) <= 3);
+  //   } 
+  //   else {
+  //     this.filteredGrades = [];
+  //   }
+    
+  //   console.log('Filtered Grades:', this.filteredGrades); // Debug log
+  //   this.bookingForm.get('grade')?.reset('');
+  // }
+
+
   onEducationStageChange() {
     const selectedStage = this.bookingForm.get('educationStage')?.value;
-    console.log('Selected Stage:', selectedStage); // Debug log
+    console.log('Selected Stage:', selectedStage);
+    console.log('All Grades:', this.grades);
   
-    if (selectedStage === 'primary') {
-      this.filteredGrades = this.grades.filter(grade => parseInt(grade.value) <= 6);
+    if (selectedStage == 1) { // Use == for loose comparison
+      this.filteredGrades = this.grades.filter(grade => +grade.value <= 6); // Use + for conversion
     } 
-    else if (selectedStage === 'middle') {
-      this.filteredGrades = this.grades.filter(grade => parseInt(grade.value) <= 3);
+    else if (selectedStage == 2) {
+      this.filteredGrades = this.grades.filter(grade => +grade.value <= 3);
     } 
     else {
       this.filteredGrades = [];
     }
     
-    console.log('Filtered Grades:', this.filteredGrades); // Debug log
+    console.log('Filtered Grades:', this.filteredGrades);
     this.bookingForm.get('grade')?.reset('');
   }
   constructor(
@@ -118,7 +140,8 @@ export class BookingComponent implements OnInit {
 
   ngOnInit() {
     this.loadInitialData();
-    this.loadGroups();
+    // this.loadGroups();
+  //   this.loadGroup();
     this.setupFormSubscriptions();
   }
 
@@ -180,7 +203,7 @@ loadGroups(): void {
     this.isLoading = true;
     
     // Load students first
-    this.loadStudents();
+    // this.loadStudents();
     
     // Load other data that doesn't depend on form values
     this.loadAllGroups();
@@ -208,6 +231,93 @@ loadGroups(): void {
       }
     });
   }
+
+// async loadGroup()
+// {
+//    this.loadingStates.groups = false;
+//    const params: groupFilterDto = {
+//   stageId: this.selectedStage ? Number(this.selectedStage) : null,
+//   levelId: this.selectedGrade ? Number(this.selectedGrade) : null
+// };
+
+//    this.groupService.getGropsByStageAndStageLevel(params)
+//    .subscribe(
+//     (response: GroupResponseDto) => {
+//       // this.groups = Array.isArray(response) ? response : [];
+//       this.groups =  
+
+//     })
+
+// }
+async loadGroup() {
+  this.loadingStates.groups = true; // Set loading to true at start
+
+  const params: groupFilterDto = {
+    stageId: this.selectedStage ? Number(this.selectedStage) : null,
+    levelId: this.selectedGrade ? Number(this.selectedGrade) : null
+  };
+
+  this.groupService.getGropsByStageAndStageLevel(params).subscribe(
+    (response: GroupResponseDto[]) => { 
+
+      console.log(response , "Group as Filter")
+      this.groups = response.map(groupDto => ({
+        groupID: groupDto.groupId,
+        groupName: groupDto.groupName,
+        description: groupDto.description,
+        teacherId: groupDto.teacherId,
+        teacher: undefined, // or remove this line if not needed
+        scheduleDay: groupDto.scheduleDay || '',
+        maxStudentNumber: groupDto.maxCapacity,
+        stage: groupDto.educationStage.toString(),
+        stageLevel: groupDto.gradeLevel.toString(),
+        startDate: new Date(groupDto.startDate),
+        endDate: new Date(),
+        currentStudents: groupDto.memberCount,
+        active: groupDto.status === 'Active',
+        fees: 0,
+        // ...other fields as needed
+      }));
+
+      this.loadingStates.groups = false;
+    },
+    (error) => {
+      this.loadingStates.groups = false;
+      // Handle error if needed
+      console.error('Error loading groups:', error);
+    }
+  );
+}
+// async loadGroulllp() {
+
+//   const cityValue = this.visitForm.get('visitDetails.city')?.value;
+//   const params: any = cityValue ? { cityId: cityValue } : {};
+
+//   this.loadingAreas.set(true);
+//   this.areaService.getAreas(params).subscribe(
+//     (response: AreasResponseDTO) => {
+//       this.areas.set(
+//         response.data.map(area => ({
+//           label: this.translateService.currentLang === 'ar' ? area.nameAr : area.name,
+//           value: area.id
+//         }))
+//       )
+
+//       this.loadingAreas.set(false);
+//     }
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
 
   private loadAllGroups(): void {
     this.loadingStates.groups = true;
