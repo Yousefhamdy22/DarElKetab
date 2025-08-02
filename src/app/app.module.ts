@@ -1,15 +1,14 @@
 import { NgModule } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { DropdownModule } from 'primeng/dropdown'; 
+ 
 import { BrowserModule } from "@angular/platform-browser";
 import { CommonModule } from '@angular/common';
 import { AppComponent } from "./app.component";
 import { dashModule } from "./modules/dashboard/dashboard.module";
 import { RouterModule, RouterOutlet } from "@angular/router";
 
-import { PageHeaderComponent } from "./shared/components/page-header/page-header.component";
+
 import { studentModule } from "./modules/students/student.module";
-import { StudentViewComponent } from "./modules/students/student-view/student-view.component";
 import { AppRoutingModule } from "./app-routing.module";
 import { groupModule } from "./modules/groups/grorp.module";
 import { attancenceModule } from "./modules/attendance/attandance.module";
