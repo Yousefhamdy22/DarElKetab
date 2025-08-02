@@ -1,16 +1,20 @@
 // services/attendance.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient , HttpErrorResponse } from '@angular/common/http';
+import { Observable , catchError, throwError} from 'rxjs';
 import { 
   
   StudentAttendanceSummary,
   GroupAttendanceSummary,
-  Attendance
+  Attendance ,
+  GroupAttendanceResponse
 } from  '../attendance/models';
 import { Group } from '../groups/group.models';
 import { Teacher } from '../teacher/teacher.model';
 import { Student } from '../students/student.model';
+import { Data } from '@angular/router';
+import { environment } from '../../../../environment/environment';
+import { AuthService } from '../../auth/services/AuthService.service';
 
 
 
@@ -21,7 +25,11 @@ export class AttendanceService {
   private readonly apiBaseurl = '${environment.apiUrl}';
 
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,
+    private authService: AuthService
+             
+
+  ) { }
 
   // Get all attendance records
   getAttendanceRecords(): Observable<Attendance[]> {
@@ -39,11 +47,37 @@ export class AttendanceService {
   createGroupAttendance(data: Attendance[]): Observable<Attendance[]> {
     return this.http.post<Attendance[]>(`${this.apiBaseurl}/Attendance/group`, data);
   }
+ 
+
+
+saveGroupAttendance(
+  command: any
+): Observable<GroupAttendanceResponse> {
+  const url = `${environment.apiUrl}/Attendance/record-group`;
   
-  // Save group attendance (bulk save)
-  saveGroupAttendance(data: Attendance[]): Observable<any> {
-    return this.http.post(`${this.apiBaseurl}/Attendance/group`, data);
-  }
+  return this.http.post<GroupAttendanceResponse>(url, command);
+}
+
+
+// saveGroupAttendance(data: any[], date: Date, sessionId: number): Observable<any> {
+//   const url = `${environment.apiUrl}/Attendance/record-group`;
+//   const payload = {
+//     groupId: data[0]?.groupId,
+//     sessionId: sessionId,
+//     date: date.toISOString(),
+//     markedBy: this.authService.getUserId(), // Get from auth service
+//     records: data.map(record => ({
+//       studentId: record.studentId,
+//       studentName: record.studentName || 'Unknown', // Ensure this exists
+//       studentCode: record.studentCode || '',
+//       attendanceStatus: record.attendanceStatus,
+//       notes: record.notes || '',
+//       recentAttendance: record.recentAttendance || []
+//     }))
+//   };
+  
+//   return this.http.post(url, payload);
+// }
 
   // Update an attendance record
   updateAttendanceRecord(id: number, data: Attendance): Observable<any> {
@@ -81,7 +115,7 @@ export class AttendanceService {
     );
   }
 
-  // Helper methods (these would typically fetch from separate APIs but included here for completeness)
+  
   // Get all student groups
   getGroups(): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.apiBaseurl}/Groups`);
@@ -95,5 +129,31 @@ export class AttendanceService {
   // Get students by group
   getStudentsByGroup(groupId: number): Observable<Student[]> {
     return this.http.get<Student[]>(`${this.apiBaseurl}/Students/group/${groupId}`);
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An unknown error occurred!';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side or network error
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      
+      // You can add more specific messages based on status codes
+      if (error.status === 400) {
+        errorMessage = 'Bad request. Please check your data.';
+      } else if (error.status === 401) {
+        errorMessage = 'Unauthorized. Please login again.';
+      } else if (error.status === 404) {
+        errorMessage = 'Resource not found.';
+      } else if (error.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+    }
+    
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 }

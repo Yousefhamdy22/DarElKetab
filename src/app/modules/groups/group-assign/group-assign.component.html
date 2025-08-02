@@ -87,10 +87,9 @@
     <!-- Main Navigation Tabs -->
     <p-tabView styleClass="custom-tabs group-tabs">
 
-
-
-
       <!-- Students Tab Panel -->
+    
+
       <p-tabPanel header="الطلاب" leftIcon="pi pi-users">
         <div class="p-4">
           <!-- Search and Filter Section -->
@@ -101,13 +100,13 @@
                 <input type="text" pInputText placeholder="بحث عن طالب..." class="w-full"
                   [(ngModel)]="studentSearchTerm" (input)="filterStudents()" [ngModelOptions]="{standalone: true}">
               </span>
-              <p-dropdown [options]="genderOptions" [(ngModel)]="selectedGender" optionLabel="name" 
-                placeholder="النوع" styleClass="w-28" (onChange)="filterStudents()"></p-dropdown>
-            </div>
-      
-            <div class="flex gap-2">
-              <p-dropdown [options]="statusOptions" [(ngModel)]="selectedStatus" optionLabel="name"
+              <p-dropdown [options]="statusOptions" [(ngModel)]="selectedStatus" optionLabel="name" 
                 placeholder="الحالة" styleClass="w-28" (onChange)="filterStudents()"></p-dropdown>
+            </div>
+        
+            <div class="flex gap-2">
+              <p-dropdown [options]="educationStageOptions" [(ngModel)]="selectedEducationStage" optionLabel="name"
+                placeholder="المرحلة" styleClass="w-28" (onChange)="filterStudents()"></p-dropdown>
               <button pButton icon="pi pi-plus" label="إضافة طالب" class="p-button-success"
                 (click)="showAddStudentDialog()">
                 <i class="pi pi-user-plus ml-2"></i>
@@ -117,14 +116,14 @@
                 pTooltip="تصدير إلى اكسل" tooltipPosition="top"></button>
             </div>
           </div>
-      
+        
           <!-- Statistics Cards -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
               <div class="flex justify-between items-center">
                 <div>
                   <p class="text-sm text-gray-500">إجمالي الطلاب</p>
-                  <h3 class="text-2xl font-bold">{{totalStudents}}</h3>
+                  <h3 class="text-2xl font-bold">{{data?.students?.length || 0}}</h3>
                 </div>
                 <i class="pi pi-users text-3xl text-blue-500"></i>
               </div>
@@ -133,7 +132,7 @@
               <div class="flex justify-between items-center">
                 <div>
                   <p class="text-sm text-gray-500">طلاب نشطين</p>
-                  <h3 class="text-2xl font-bold text-green-600">{{activeStudents}}</h3>
+                  <h3 class="text-2xl font-bold text-green-600">{{activeStudentsCount}}</h3>
                 </div>
                 <i class="pi pi-check-circle text-3xl text-green-500"></i>
               </div>
@@ -142,7 +141,7 @@
               <div class="flex justify-between items-center">
                 <div>
                   <p class="text-sm text-gray-500">طلاب غير نشطين</p>
-                  <h3 class="text-2xl font-bold text-orange-600">{{inactiveStudents}}</h3>
+                  <h3 class="text-2xl font-bold text-orange-600">{{inactiveStudentsCount}}</h3>
                 </div>
                 <i class="pi pi-exclamation-circle text-3xl text-orange-500"></i>
               </div>
@@ -150,36 +149,38 @@
             <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
               <div class="flex justify-between items-center">
                 <div>
-                  <p class="text-sm text-gray-500">متوسط الحضور</p>
-                  <h3 class="text-2xl font-bold text-teal-600">{{averageAttendance}}%</h3>
+                  <p class="text-sm text-gray-500">سعة المجموعة</p>
+                  <h3 class="text-2xl font-bold text-teal-600">
+                    {{data?.group?.memberCount || 0}}/{{data?.group?.maxCapacity || 0}}
+                  </h3>
                 </div>
-                <i class="pi pi-chart-line text-3xl text-teal-500"></i>
+                <i class="pi pi-chart-bar text-3xl text-teal-500"></i>
               </div>
             </div>
           </div>
-      
+        
           <!-- Loading Indicator -->
           <div *ngIf="loading" class="text-center p-5">
             <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
             <p class="mt-3 text-gray-600">جاري تحميل بيانات الطلاب...</p>
           </div>
-      
+        
           <!-- Students Table -->
           <p-table *ngIf="filteredStudents.length > 0 && !loading" [value]="filteredStudents" [paginator]="true"
-            [rows]="10" [rowsPerPageOptions]="[5,10,20]" [globalFilterFields]="['name', 'studentID']" 
+            [rows]="10" [rowsPerPageOptions]="[5,10,20]" [globalFilterFields]="['name', 'studentCode']" 
             styleClass="p-datatable-sm p-datatable-striped" responsiveLayout="scroll" [rowHover]="true">
             
             <ng-template pTemplate="header">
               <tr>
                 <th style="width: 180px; text-align: right;">معلومات الطالب</th>
                 <th style="width: 120px; text-align: center;">معلومات الاتصال</th>
+                <th style="width: 100px; text-align: center;">المرحلة/الصف</th>
                 <th style="width: 100px; text-align: center;">الحالة</th>
-                <th style="width: 120px; text-align: center;">التسجيل</th>
-                <th style="width: 120px; text-align: center;">الحفظ</th>
+                <th style="width: 120px; text-align: center;">كود الطالب</th>
                 <th style="width: 100px; text-align: center;">إجراءات</th>
               </tr>
             </ng-template>
-      
+        
             <ng-template pTemplate="body" let-student>
               <tr>
                 <!-- Student Info -->
@@ -187,12 +188,12 @@
                   <div class="flex items-center gap-3">
                     <img [src]="getStudentAvatar(student)" class="w-10 h-10 rounded-full" alt="صورة الطالب">
                     <div>
-                      <div class="font-semibold">{{student.name}}</div>
+                      <div class="font-semibold">{{student.name || 'غير معروف'}}</div>
                       <div class="text-xs text-gray-500">
-                        <span class="font-medium">ID:</span> {{student.studentID || student.id}}
+                        <span class="font-medium">ID:</span> {{student.studentId || '--'}}
                       </div>
                       <div class="text-xs text-gray-500">
-                        <span class="font-medium">العمر:</span> {{calculateAge(student.birthDate)}} سنة
+                        <span class="font-medium">النوع:</span> {{student.gender || 'غير محدد'}}
                       </div>
                     </div>
                   </div>
@@ -201,39 +202,34 @@
                 <!-- Contact Info -->
                 <td class="text-center">
                   <div class="flex flex-col gap-1">
-                    <div class="text-sm">{{student.phone}}</div>
-                    <div class="text-xs text-gray-500 truncate" pTooltip="{{student.address}}" 
-                      tooltipPosition="top" [showDelay]="500">{{student.address || '--'}}</div>
+                    <div class="text-sm">{{student.phoneNumber || '--'}}</div>
+                    <div class="text-xs text-gray-500">
+                      {{student.fatherPhone ? 'والد: ' + student.fatherPhone : '--'}}
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Education Stage/Grade -->
+                <td class="text-center">
+                  <div class="flex flex-col">
+                    <span class="text-sm">{{getEducationStage(student.educationStage)}}</span>
+                    <span class="text-xs text-gray-500">
+                      {{student.gradeLevel ? 'الصف ' + student.gradeLevel : '--'}}
+                    </span>
                   </div>
                 </td>
                 
                 <!-- Status -->
                 <td class="text-center">
-                  <p-tag [severity]="student.isActive ? 'success' : 'danger'" 
-                    [value]="student.isActive ? 'نشط' : 'غير نشط'"
-                    [icon]="student.isActive ? 'pi pi-check' : 'pi pi-times'"></p-tag>
-                  <div *ngIf="student.name" class="mt-1">
-                    <p-tag severity="info" [value]="student.name" icon="pi pi-id-card"></p-tag>
-                  </div>
+                  <p-tag [severity]="student.status === 'Active' ? 'success' : 'danger'" 
+                    [value]="student.status === 'Active' ? 'نشط' : 'غير نشط'"
+                    [icon]="student.status === 'Active' ? 'pi pi-check' : 'pi pi-times'"></p-tag>
                 </td>
                 
-                <!-- Registration -->
+                <!-- Student Code -->
                 <td class="text-center">
-                  <div class="text-sm">{{student.registrationDate | date:'yyyy-MM-dd'}}</div>
-                  <div class="text-xs text-gray-500">
-                    منذ {{getDuration(student.registrationDate)}}
-                  </div>
-                </td>
-                
-                <!-- Memorization Progress -->
-                <td class="text-center">
-                  <div class="flex flex-col items-center">
-                    <p-progressBar [value]="student.memorizedPercentage || 0" 
-                      [showValue]="false" styleClass="h-2 mb-1 w-full"></p-progressBar>
-                    <span class="text-sm font-medium">
-                      {{student.memorizedParts || 0}} أجزاء
-                    </span>
-                  </div>
+                  <p-tag *ngIf="student.studentCode" severity="info" [value]="student.studentCode" icon="pi pi-id-card"></p-tag>
+                  <span *ngIf="!student.studentCode" class="text-gray-400">--</span>
                 </td>
                 
                 <!-- Actions -->
@@ -241,7 +237,9 @@
                   <div class="flex justify-center gap-1">
                     <button pButton icon="pi pi-eye" pTooltip="عرض التفاصيل"
                       class="p-button-rounded p-button-text p-button-sm p-button-info"
-                      (click)="viewStudentDetails(student)"></button>
+                      [routerLink]="['/students', student.studentId]"
+                     
+                      ></button>
                     <button pButton icon="pi pi-user-edit" pTooltip="تعديل"
                       class="p-button-rounded p-button-text p-button-sm"
                       (click)="editStudent(student)"></button>
@@ -252,13 +250,13 @@
                 </td>
               </tr>
             </ng-template>
-      
+        
             <ng-template pTemplate="emptymessage">
               <tr>
                 <td colspan="6" class="text-center p-6">
                   <div class="flex flex-col items-center text-gray-500">
                     <i class="pi pi-users text-5xl mb-3"></i>
-                    <p class="text-lg">لا يوجد طلاب</p>
+                    <p class="text-lg">لا يوجد طلاب في هذه المجموعة</p>
                     <p class="text-sm mt-1">قم بإضافة طلاب جديدين باستخدام زر "إضافة طالب"</p>
                   </div>
                 </td>
@@ -282,50 +280,44 @@
             </div>
       
             <div class="field col-12 md:col-6">
-              <label for="birthDate">تاريخ الميلاد *</label>
-              <p-calendar id="birthDate" formControlName="birthDate" [showIcon]="true" dateFormat="yy-mm-dd"
-                [maxDate]="maxBirthDate" [yearRange]="yearRange" [monthNavigator]="true" [yearNavigator]="true">
-              </p-calendar>
-              <small *ngIf="studentForm.get('birthDate')?.invalid && studentForm.get('birthDate')?.touched" class="p-error">
-                تاريخ الميلاد مطلوب
-              </small>
-            </div>
-      
-            <!-- Contact Info -->
-            <div class="field col-12 md:col-6">
-              <label for="phone">رقم الهاتف *</label>
-              <p-inputMask id="phone" formControlName="phone" mask="9999999999" placeholder="05XXXXXXXX"></p-inputMask>
-              <small *ngIf="studentForm.get('phone')?.invalid && studentForm.get('phone')?.touched" class="p-error">
-                رقم هاتف صحيح مطلوب (يبدأ بـ 05 ويتكون من 10 أرقام)
-              </small>
-            </div>
-      
-            <div class="field col-12 md:col-6">
               <label for="gender">النوع *</label>
               <p-dropdown id="gender" formControlName="gender" [options]="genderOptions" optionLabel="name"></p-dropdown>
             </div>
       
-            <div class="field col-12">
-              <label for="address">العنوان</label>
-              <textarea pInputTextarea id="address" formControlName="address" rows="2"></textarea>
-            </div>
-      
-            <!-- Group and Status -->
+            <!-- Contact Info -->
             <div class="field col-12 md:col-6">
-              <label for="groupID">المجموعة *</label>
-              <p-dropdown id="groupID" formControlName="groupID" [options]="groups" optionLabel="name"
-                [filter]="true" filterBy="name" [showClear]="true"></p-dropdown>
+              <label for="phoneNumber">رقم الهاتف</label>
+              <input pInputText id="phoneNumber" formControlName="phoneNumber" placeholder="رقم الطالب">
             </div>
       
             <div class="field col-12 md:col-6">
-              <label for="isActive">الحالة</label>
-              <p-inputSwitch id="isActive" formControlName="isActive"></p-inputSwitch>
+              <label for="fatherPhone">رقم ولي الأمر</label>
+              <input pInputText id="fatherPhone" formControlName="fatherPhone" placeholder="رقم الوالد">
             </div>
       
-            <!-- Egaza Info -->
-            <div class="field col-12">
-              <label for="name">كود الإجازة (إن وجد)</label>
-              <input pInputText id="name" formControlName="name" placeholder="كود الإجازة">
+            <!-- Education Info -->
+            <div class="field col-12 md:col-6">
+              <label for="educationStage">المرحلة التعليمية</label>
+              <p-dropdown id="educationStage" formControlName="educationStage" [options]="educationStageOptions" 
+                optionLabel="name" optionValue="value"></p-dropdown>
+            </div>
+      
+            <div class="field col-12 md:col-6">
+              <label for="gradeLevel">الصف</label>
+              <p-inputNumber id="gradeLevel" formControlName="gradeLevel" [min]="1" [max]="12"></p-inputNumber>
+            </div>
+      
+            <!-- Student Code -->
+            <div class="field col-12 md:col-6">
+              <label for="studentCode">كود الطالب</label>
+              <input pInputText id="studentCode" formControlName="studentCode" placeholder="كود خاص بالطالب">
+            </div>
+      
+            <!-- Status -->
+            <div class="field col-12 md:col-6">
+              <label for="status">الحالة</label>
+              <p-dropdown id="status" formControlName="status" [options]="statusOptions" 
+                optionLabel="name" optionValue="value"></p-dropdown>
             </div>
           </form>
       
@@ -351,26 +343,22 @@
             <div class="col-12 md:col-4 border-right p-4">
               <div class="flex flex-col items-center">
                 <img [src]="getStudentAvatar(selectedStudent)" class="w-32 h-32 rounded-full mb-4">
-                <h3 class="text-xl font-bold">{{selectedStudent.name}}</h3>
-                <p class="text-gray-600">ID: {{selectedStudent.studentID || selectedStudent.studentID}}</p>
+                <h3 class="text-xl font-bold">{{selectedStudent.name || 'غير معروف'}}</h3>
+                <p class="text-gray-600">ID: {{selectedStudent.studentID || '--'}}</p>
                 
                 <div class="w-full mt-4">
                   <div class="flex justify-between py-2 border-b">
-                    <span class="font-medium">العمر:</span>
-                    <span>{{selectedStudent.birthDate ? calculateAge(selectedStudent.birthDate) : 'غير متوفر'}} سنة</span>
-                  </div>
-                  <div class="flex justify-between py-2 border-b">
                     <span class="font-medium">النوع:</span>
-                    <span>{{selectedStudent.gender === 'Male' ? 'ذكر' : 'أنثى'}}</span>
+                    <span>{{selectedStudent.gender || 'غير محدد'}}</span>
                   </div>
                   <div class="flex justify-between py-2 border-b">
                     <span class="font-medium">الحالة:</span>
-                    <p-tag [severity]="selectedStudent.isActive ? 'success' : 'danger'" 
-                      [value]="selectedStudent.isActive ? 'نشط' : 'غير نشط'"></p-tag>
+                    <p-tag [severity]="selectedStudent.status === 'Active' ? 'success' : 'danger'" 
+                      [value]="selectedStudent.status === 'Active' ? 'نشط' : 'غير نشط'"></p-tag>
                   </div>
-                  <div class="flex justify-between py-2 border-b" *ngIf="selectedStudent.name">
-                    <span class="font-medium">كود الإجازة:</span>
-                    <p-tag severity="info">{{selectedStudent.name}}</p-tag>
+                  <div class="flex justify-between py-2 border-b" *ngIf="selectedStudent.studentCode">
+                    <span class="font-medium">كود الطالب:</span>
+                    <p-tag severity="info">{{selectedStudent.studentCode}}</p-tag>
                   </div>
                 </div>
               </div>
@@ -384,78 +372,27 @@
                     <div class="col-12 md:col-6">
                       <h4 class="font-bold mb-2">معلومات الاتصال</h4>
                       <p><i class="pi pi-phone mr-2"></i> {{selectedStudent.phoneNumber || 'غير متوفر'}}</p>
-                      <p><i class="pi pi-map-marker mr-2"></i> {{selectedStudent.name || 'غير متوفر'}}</p>
+                      <p><i class="pi pi-phone mr-2"></i> ولي الأمر: {{selectedStudent.phoneNumber || 'غير متوفر'}}</p>
                     </div>
                     <div class="col-12 md:col-6">
-                      <h4 class="font-bold mb-2">معلومات التسجيل</h4>
-                      <p><i class="pi pi-calendar mr-2"></i> {{selectedStudent.registrationDate | date:'yyyy-MM-dd'}}</p>
-                      <p><i class="pi pi-clock mr-2"></i> منذ {{getDuration(selectedStudent.registrationDate)}}</p>
-                    </div>
-                    <div class="col-12 mt-4">
-                      <h4 class="font-bold mb-2">المجموعة</h4>
-                      <p-tag *ngIf="selectedStudent.group" severity="info" icon="pi pi-users">
-                        {{selectedStudent.group.groupName}}
-                      </p-tag>
-                      <p *ngIf="!selectedStudent.group" class="text-gray-500">لا ينتمي لأي مجموعة</p>
+                      <h4 class="font-bold mb-2">المعلومات الأكاديمية</h4>
+                      <p><i class="pi pi-book mr-2"></i> المرحلة: {{getEducationStage(selectedStudent.stage)}}</p>
+                      <p><i class="pi pi-sort-numeric-up mr-2"></i> الصف: {{selectedStudent.stageLevel || '--'}}</p>
                     </div>
                   </div>
                 </p-tabPanel>
                 
-                <p-tabPanel header="التقدم الدراسي">
-                  <div class="grid">
-                    <div class="col-12 md:col-6">
-                      <h4 class="font-bold mb-2">حفظ القرآن</h4>
-                      <div class="mb-4">
-                        <p class="flex justify-between mb-1">
-                          <span>الأجزاء المحفوظة:</span>
-                          <span class="font-bold">{{selectedStudent || 0}}/30</span>
-                        </p>
-                        <p-progressBar [value]="(selectedStudent.attendanceDays)/30*100" 
-                          [showValue]="false"></p-progressBar>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-6">
-                      <h4 class="font-bold mb-2">الحضور</h4>
-                      <div class="mb-4">
-                        <p class="flex justify-between mb-1">
-                          <span>معدل الحضور:</span>
-                          <span class="font-bold">{{selectedStudent.attendanceDays || 0}}%</span>
-                        </p>
-                        <p-progressBar [value]="selectedStudent.attendanceDays || 0" 
-                          [showValue]="false"></p-progressBar>
-                      </div>
-                    </div>
+                <p-tabPanel header="المجموعات">
+                  <div *ngIf="selectedStudent.groupIds && selectedStudent.groupIds.length > 0; else noGroups">
+                    <p-chip *ngFor="let groupId of selectedStudent.groupIds" [label]="getGroupName(groupId)" 
+                      icon="pi pi-users" class="mr-2 mb-2"></p-chip>
                   </div>
-                </p-tabPanel>
-                
-                <p-tabPanel header="السجل الأكاديمي">
-                  <p-table [value]="selectedStudent.exams || []" styleClass="p-datatable-sm" [paginator]="true" [rows]="5">
-                    <ng-template pTemplate="header">
-                      <tr>
-                        <th>التاريخ</th>
-                        <th>نوع الاختبار</th>
-                        <th>النتيجة</th>
-                        <th>التقييم</th>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-exam>
-                      <tr>
-                        <td>{{exam.date | date:'yyyy-MM-dd'}}</td>
-                        <td>{{exam.type}}</td>
-                        <td>{{exam.score}}/100</td>
-                        <td>
-                          <p-rating [ngModel]="exam.rating" readonly="true" cancel="false" stars="5"></p-rating>
-                        </td>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                      <tr>
-                        <td colspan="4" class="text-center p-4 text-gray-500">
-                          لا يوجد سجل اختبارات لهذا الطالب
-                        </td>
-                      </tr>
-                    </ng-template>
-                  </p-table>
+                  <ng-template #noGroups>
+                    <div class="text-center text-gray-500 p-4">
+                      <i class="pi pi-info-circle text-2xl mb-2"></i>
+                      <p>الطالب غير مسجل في أي مجموعة</p>
+                    </div>
+                  </ng-template>
                 </p-tabPanel>
               </p-tabView>
             </div>

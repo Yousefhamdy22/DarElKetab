@@ -17,6 +17,7 @@ import { reportModule } from "./modules/reports/reports.module";
 import { TeacherModule } from "./modules/teacher/teacher.module";
 import { examModule } from "./modules/exams/exam.module";
 import { BookModule } from "./modules/book/book.module";
+import { AuthModule } from "./auth/auth.module";
 
 @NgModule({
   declarations: [AppComponent],
@@ -34,9 +35,11 @@ import { BookModule } from "./modules/book/book.module";
     AppRoutingModule,
     BrowserModule,
     CommonModule,
-    RouterModule
+    RouterModule,
+    AuthModule
    
 ],
+ 
   bootstrap: [AppComponent]
 })
 export class AppModule {}

@@ -20,6 +20,8 @@ import { BookinglistComponent } from './modules/book/bookinglist/bookinglist.com
 import { BookingComponent } from './modules/book/book-form/booking.component';
 import { BookingCardComponent } from './modules/book/bookingcard/bookingcard.component';
 import { SessionschedulComponent } from './modules/sessionschedul/sessionschedul.component';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
 
 
 
@@ -31,9 +33,7 @@ const routes: Routes = [
  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
      {path: 'dashboard' , component: DashboardComponent}
     ,{path: 'students' , component: StudentListComponent }
-    ,{ path:'students/:id',  component: StudentViewComponent ,
-
-     
+    ,{ path:'students/:id',  component: StudentViewComponent 
     }
     ,{ path: 'student/add' , component: StudentFormComponent}
     ,{path: 'gruops' , component: GroupListComponent}
@@ -45,18 +45,22 @@ const routes: Routes = [
     ,{path: 'group/shcedu' , component: GroupScheduleComponent}
     ,{path: 'teacher' , component: TeacherComponent}
     ,{path: 'exam' , component: ExamComponent}
-    ,{path: 'exam/result' , component: ExamResulteComponent}
+    ,{path: 'examResult' , component: ExamResulteComponent}
     ,{path: 'group/repo' , component: GroupReportComponent}
     ,{path: 'dash/teacher' , component: TeacherDashboardComponent}
 
-  //  , { path: 'booking', component: BookinglistComponent },
-  //    { path: 'booking/new', component: BookingComponent }, 
+
+    
     ,{path: 'booking' , component: BookinglistComponent}
     ,{path: 'bookingnew' , component: BookingComponent}
     ,{path: 'bookingcard' , component: BookingCardComponent}
 
 
     ,{path: 'sessionschedule' , component: SessionschedulComponent}
+    ,{path: 'login' , component: LoginComponent}
+    ,{path: 'register' , component: RegisterComponent}
+
+
 
 
 

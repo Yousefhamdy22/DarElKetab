@@ -57,7 +57,8 @@ export class GroupAssignComponent implements OnInit {
    // Form controls
    studentSearchTerm = '';
    loading = false;
-
+   data: any;
+   selectedEducationStage: any;
  
 
 
@@ -98,7 +99,22 @@ export class GroupAssignComponent implements OnInit {
    
   
    
- 
+   educationStageOptions = [
+    { name: 'الابتدائية', value: 0 },
+    { name: 'المتوسطة', value: 1 },
+    { name: 'الثانوية', value: 2 },
+    { name: 'غير محدد', value: null }
+  ];
+  
+  // Map education stage numbers to Arabic names
+  getEducationStage(stage: number): string {
+    switch(stage) {
+      case 0: return 'الابتدائية';
+      case 1: return 'المتوسطة';
+      case 2: return 'الثانوية';
+      default: return 'غير محدد';
+    }
+  }
    
   
    
@@ -233,7 +249,7 @@ export class GroupAssignComponent implements OnInit {
     
     this.groupService.getGroupWithStudents(groupId).subscribe({
       next: (response) => {
-        // Clear previous data
+        console.log(response , "Grouping With Student ");
         this.students = [];
         this.filteredStudents = [];
         
@@ -262,32 +278,19 @@ export class GroupAssignComponent implements OnInit {
     return students.map(student => ({
       ...student,
       id: student.studentID || student.studentID,
-      attendanceRate: this.calculateAttendanceRate(student),
+      // attendanceRate: this.calculateAttendanceRate(student),
       lastExamScore: this.getLastExamScore(student),
       registrationDate: student.registrationDate ? new Date(student.registrationDate) : new Date()
     }));
   }
 
 
-  private calculateAttendanceRate(student: Student): number {
-    if (!student.totalDays || student.totalDays === 0) return 0;
-    return Math.round(((student.attendanceDays || 0) / student.totalDays) * 100);
-  }
-
-  // filterStudents(): void {
-  //   if (!this.studentSearchTerm) {
-  //     this.filteredStudents = this.applySelectedFilter([...this.students]);
-  //     return;
-  //   }
-  
-  //   const searchTerm = this.studentSearchTerm.toLowerCase();
-  //   this.filteredStudents = this.applySelectedFilter(
-  //     this.students.filter(student => 
-  //       student.name.toLowerCase().includes(searchTerm) ||
-  //       (student.studentID && student.studentID.toString().includes(searchTerm))
-  //     )
-  //   );
+  // private calculateAttendanceRate(student: Student): number {
+  //   if (!student.attendances || student.attendances === 0) return 0;
+  //   return Math.round(((student.attendanceDays || 0) / student.totalDays) * 100);
   // }
+
+
 
   applyFilter(): void {
     this.filteredStudents = this.applySelectedFilter([...this.students]);
@@ -301,9 +304,15 @@ export class GroupAssignComponent implements OnInit {
 
     switch (this.selectedFilter) {
       case 'highAttendance':
-        return students.filter(s => s.attendanceDays && s.attendanceDays >= 75);
+        return students.filter(s => {
+          const attendanceCount = s.attendances?.filter(a => a.status === 'Present' || a.isPresent).length || 0;
+          return attendanceCount >= 75;
+        });
       case 'lowAttendance':
-        return students.filter(s => s.attendanceDays && s.attendanceDays < 50);
+        return students.filter(s => {
+          const attendanceCount = s.attendances?.filter(a => a.status === 'Present' || a.isPresent).length || 0;
+          return attendanceCount < 50;
+        });
       case 'recentlyRegistered':
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
@@ -346,10 +355,10 @@ export class GroupAssignComponent implements OnInit {
   
     this.studentForm.patchValue({
       ...formattedStudent,
-      quranProgress: {
-        memorizedPercentage: student.quranProgress?.memorizedPercentage || 0,
-        memorizedParts: student.quranProgress?.memorizedParts || 0
-      }
+      // quranProgress: {
+      //   memorizedPercentage: student.quranProgress?.memorizedPercentage || 0,
+      //   memorizedParts: student.quranProgress?.memorizedParts || 0
+      // }
     });
   }
 
@@ -358,8 +367,34 @@ export class GroupAssignComponent implements OnInit {
     this.showForm = false;
     this.studentForm.reset();
   }
+// Calculate active students count
+get activeStudentsCount(): number {
+  if (!this.data?.students) return 0;
+  return this.data.students.filter((student: Student) => student.status === 'Active').length;
+}
 
 
+// Calculate inactive students count
+get inactiveStudentsCount(): number {
+  if (!this.data?.students) return 0;
+  return this.data.students.filter((student: Student) => student.status === 'Inactive').length;
+}
+getGroupName(groupId: number): string {
+  if (!this.data?.group || !groupId) return 'غير معروف';
+  
+  // If we're showing students from a specific group
+  if (this.data.group.groupId === groupId) {
+    return this.data.group.groupName || 'المجموعة الحالية';
+  }
+  
+  // If you have access to all groups in the component
+  if (this.group) {
+    const foundGroup = this.groups.find(g => g.groupID === groupId);
+    return foundGroup?.groupName || `المجموعة ${groupId}`;
+  }
+  
+  return `المجموعة ${groupId}`;
+}
 
   private handleSaveSuccess(message: string): void {
     this.loading = false;
@@ -674,28 +709,6 @@ deleteExam(): void {
      // Implementation for viewing session details
    }
  
-  //  deleteSession(session: ReadingSession): void {
-  //    this.confirmationService.confirm({
-  //      message: 'هل أنت متأكد من حذف هذه الجلسة؟',
-  //      header: 'تأكيد الحذف',
-  //      icon: 'pi pi-exclamation-triangle',
-  //      accept: () => {
-  //        this.readSessionService.deleteSession(session.readingSessionId).subscribe({
-  //          next: () => {
-  //            this.messageService.add({
-  //              severity: 'success',
-  //              summary: 'نجاح',
-  //              detail: 'تم حذف الجلسة بنجاح'
-  //            });
-  //            this.loadReadingSessions();
-  //          },
-  //          error: (err) => this.handleError('Failed to delete session', err)
-  //        });
-  //      }
-  //    });
-  //  }
-
-
  
  
 //--
@@ -1133,9 +1146,11 @@ deleteExam(): void {
      
      const activeStudents = this.students.filter(s => s.isActive);
      if (activeStudents.length > 0) {
-       this.averageAttendance = Math.round(
-         activeStudents.reduce((sum, student) => sum + (student.attendanceDays || 0), 0) / activeStudents.length
-       );
+       const totalAttendance = activeStudents.reduce((sum, student) => {
+         const attendanceCount = student.attendances?.filter(a => a.status === 'Present' || a.isPresent).length || 0;
+         return sum + attendanceCount;
+       }, 0);
+       this.averageAttendance = Math.round(totalAttendance / activeStudents.length);
      }
    }
  

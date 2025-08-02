@@ -187,30 +187,11 @@
       </div>
     </nav>
 
-    <!-- User Profile Section -->
-    <div class="border-t border-teal-600 p-4">
-      <div class="flex items-center">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white font-bold">
-          م س
-        </div>
-        <div class="sidebar-text mr-3">
-          <p class="font-medium text-white">محمد سالم</p>
-          <p class="text-sm text-teal-200">مدير النظام</p>
-        </div>
-        <button class="sidebar-text mr-auto p-2 rounded-full hover:bg-white hover:bg-opacity-10 transition-colors text-white"
-                (click)="logout()">
-          <i class="pi pi-sign-out text-lg"></i>
-        </button>
-      </div>
-    </div>
+  
+
   </aside>
 
-  <!-- Mobile Toggle Button -->
-  <!-- <button *ngIf="isMobile" 
-          (click)="toggleSidebar()"
-          class="fixed bottom-6 right-6 z-40 p-4 bg-teal-600 text-white rounded-full shadow-lg hover:bg-teal-700 transition-colors lg:hidden">
-    <i class="pi" [class.pi-bars]="!sidebarOpen" [class.pi-times]="sidebarOpen"></i>
-  </button> -->
+
 
   <button *ngIf="isMobile" 
         (click)="toggleSidebar()"

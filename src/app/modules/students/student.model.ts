@@ -7,16 +7,16 @@ export interface Student {
     name: string;
     birthDate?: Date;
     gender: string;
-  //  address?: string;
     phoneNumber: string;
-  //  name: string;
-    stage:string,
+    groupIds:number[],
+    stage:number,
     stageLevel:string,
     notes?: string;
     status?: string; 
     registrationDate: Date;
     isActive: boolean;
     groupID?: number;
+    studentCode:string;
     group?: Group;
     attendances?: Attendance[];
     examResults?: any[];
@@ -28,15 +28,24 @@ export interface Student {
       teacher: string;
       type: string;
     }[];
-    totalDays: number; // Add this property
-    attendanceDays: number;
-    excusedAbsences: number;
-    absences?: number;
-    quranProgress?: {
-      memorizedPercentage: number;
-      memorizedParts: number;
-      // other properties
-    };
+
+
+
+
+
+
+
+
+
+    // totalDays: number; // Add this property
+    // attendanceDays: number;
+    // excusedAbsences: number;
+    // absences?: number;
+    // quranProgress?: {
+    //   memorizedPercentage: number;
+    //   memorizedParts: number;
+    //   // other properties
+    // };
 
 
 

@@ -109,23 +109,7 @@ export class BookingCardComponent implements OnInit, OnDestroy {
       });
   }
 
-  // private subscribeToBookingUpdates() {
-  //   this.bookingService.bookings$
-  //     .pipe(takeUntil(this.destroy$))
-  //     .subscribe(bookings => {
-  //       this.bookings = bookings.filter(b => b.status !== BookingStatus.Cancelled);
-  //       this.updateBookingOptions();
-  //     });
 
-  //   this.bookingService.selectedBooking$
-  //     .pipe(takeUntil(this.destroy$))
-  //     .subscribe(booking => {
-  //       if (booking) {
-  //         this.selectedBooking = booking;
-  //         this.selectedBookingId = booking.id.toString();
-  //       }
-  //     });
-  // }
 
   private updateBookingOptions() {
     this.bookingOptions = this.bookings.map(booking => ({
@@ -280,7 +264,7 @@ export class BookingCardComponent implements OnInit, OnDestroy {
       <div class="print-card w-full max-w-none mx-auto bg-white relative overflow-hidden">
         <!-- Year Badge -->
         <div class="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 font-bold text-lg z-10 rounded shadow-lg">
-          ${this.selectedBooking.group?.endDate}
+          ${this.selectedBooking.group?.createdAt}
         </div>
         
         <!-- Main Grid Layout -->

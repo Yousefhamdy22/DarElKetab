@@ -19,7 +19,7 @@ export interface BookingRequest {
   grade: string;
   teacherId: string;
   date: string;
-  timeSlot: string;
+  // timeSlot: string;
   notes?: string;
   studentInfo: {
     name: string,
@@ -269,9 +269,7 @@ export class BookingService {
       }
     }
     
-    if (!data.timeSlot) {
-      errors.push('الوقت مطلوب');
-    }
+  
     
     return errors;
   }

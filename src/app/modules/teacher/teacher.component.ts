@@ -66,16 +66,27 @@ export class TeacherComponent implements OnInit {
 
   }
 
+  // private createTeacherForm(): FormGroup {
+  //   return this.fb.group({
+  //     name: ['', [Validators.required, Validators.minLength(3)]],
+  //     email: ['', [Validators.required, Validators.email]],
+  //     phone: ['', [Validators.required, Validators.pattern(/^05\d{8}$/)]],
+  //     specialization: ['', Validators.required],
+  //     qualification: ['', Validators.required],
+  //     experience: [0, [Validators.min(0), Validators.max(50)]],
+  //     joinDate: [new Date(), Validators.required],
+  //     isActive: [true]
+  //   });
+  // }
   private createTeacherForm(): FormGroup {
     return this.fb.group({
+      userId: [''], // Will be populated when editing
       name: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^05\d{8}$/)]],
+      phoneNunber: ['', [Validators.required, Validators.pattern(/^01\d{9}$/)]],
+      eduQulaified: ['', Validators.required],
       specialization: ['', Validators.required],
-      qualification: ['', Validators.required],
-      experience: [0, [Validators.min(0), Validators.max(50)]],
-      joinDate: [new Date(), Validators.required],
-      isActive: [true]
+      joinDa: [new Date(), Validators.required],
+      status: ['Active'] // Default to Active
     });
   }
 
@@ -102,7 +113,7 @@ export class TeacherComponent implements OnInit {
       {
         label: 'حذف المعلم',
         icon: 'pi pi-trash',
-        command: () => this.deleteTeacher(this.selectedTeacher?.teacherId || 0),
+        // command: () => this.deleteTeacher(this.selectedTeacher?.userId ),
         styleClass: 'text-red-500'
       }
     ];
@@ -158,45 +169,105 @@ export class TeacherComponent implements OnInit {
   }
 
 
+  // saveTeacher() {
+  //   if (this.teacherForm.valid) {
+  //     const formData = this.teacherForm.value;
+      
+  //     if (this.selectedTeacher) {
+  //       // Update existing teacher
+  //       const index = this.teachers.findIndex(t => t.teacherId === this.selectedTeacher!.teacherId);
+  //       if (index !== -1) {
+  //         this.teachers[index] = {
+  //           ...this.selectedTeacher,
+  //           ...formData
+  //         };
+  //         this.messageService.add({
+  //           severity: 'success',
+  //           summary: 'تم التحديث بنجاح',
+  //           detail: 'تم تحديث بيانات المعلم بنجاح'
+  //         });
+  //       }
+  //     } else {
+  //       // Add new teacher
+  //       const newTeacher: Teacher = {
+  //         id: Date.now().toString(),
+  //         ...formData
+  //       };
+  //       this.teachers.push(newTeacher);
+  //       this.messageService.add({
+  //         severity: 'success',
+  //         summary: 'تم الإضافة بنجاح',
+  //         detail: 'تم إضافة المعلم الجديد بنجاح'
+  //       });
+  //     }
+      
+  //     this.filteredTeachers = [...this.teachers];
+  //     this.isDialogVisible = false;
+  //     this.teacherForm.reset();
+  //   }
+  // }
+
   saveTeacher() {
     if (this.teacherForm.valid) {
       const formData = this.teacherForm.value;
       
       if (this.selectedTeacher) {
         // Update existing teacher
-        const index = this.teachers.findIndex(t => t.teacherId === this.selectedTeacher!.teacherId);
-        if (index !== -1) {
-          this.teachers[index] = {
-            ...this.selectedTeacher,
-            ...formData
-          };
-          this.messageService.add({
-            severity: 'success',
-            summary: 'تم التحديث بنجاح',
-            detail: 'تم تحديث بيانات المعلم بنجاح'
+        
+        this.teacherService.updateTeacher(this.selectedTeacher.teacherId, formData)
+          .subscribe({
+            next: (updatedTeacher) => {
+              const index = this.teachers.findIndex(t => t.userId === this.selectedTeacher!.userId);
+              if (index !== -1) {
+                this.teachers[index] = updatedTeacher;
+              }
+              this.messageService.add({
+                severity: 'success',
+                summary: 'تم التحديث بنجاح',
+                detail: 'تم تحديث بيانات المعلم بنجاح'
+              });
+              this.resetFormAndClose();
+            },
+            error: (err) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'خطأ في التحديث',
+                detail: 'حدث خطأ أثناء محاولة تحديث بيانات المعلم'
+              });
+            }
           });
-        }
       } else {
         // Add new teacher
-        const newTeacher: Teacher = {
-          id: Date.now().toString(),
-          ...formData
-        };
-        this.teachers.push(newTeacher);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'تم الإضافة بنجاح',
-          detail: 'تم إضافة المعلم الجديد بنجاح'
-        });
+        this.teacherService.createTeacher(formData)
+          .subscribe({
+            next: (newTeacher) => {
+              this.teachers.push(newTeacher);
+              this.messageService.add({
+                severity: 'success',
+                summary: 'تم الإضافة بنجاح',
+                detail: 'تم إضافة المعلم الجديد بنجاح'
+              });
+              this.resetFormAndClose();
+            },
+            error: (err) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'خطأ في الإضافة',
+                detail: 'حدث خطأ أثناء محاولة إضافة المعلم الجديد'
+              });
+            }
+          });
       }
-      
-      this.filteredTeachers = [...this.teachers];
-      this.isDialogVisible = false;
-      this.teacherForm.reset();
     }
   }
+  private resetFormAndClose() {
+    this.filteredTeachers = [...this.teachers];
+    this.isDialogVisible = false;
+    this.teacherForm.reset();
+    this.selectedTeacher = null;
+  }
 
-  deleteTeacher(teacherId: number) {
+  deleteTeacher(teacherId: string) {
     this.confirmationService.confirm({
       message: 'هل أنت متأكد من حذف هذا المعلم؟ لا يمكن التراجع عن هذا الإجراء.',
       header: 'تأكيد الحذف',

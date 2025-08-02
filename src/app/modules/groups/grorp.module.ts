@@ -32,6 +32,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { GroupReadingComponent } from "./group-reading/group-reading.component";
 import { ProgressBarModule } from 'primeng/progressbar';
+import { ChipModule } from 'primeng/chip';
+
 
 @NgModule({
     declarations:[
@@ -71,6 +73,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
     ChartModule,
     ConfirmDialogModule,
     ProgressSpinnerModule,
+    ChipModule,
     dashModule,
     
 ],

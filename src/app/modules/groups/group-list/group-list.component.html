@@ -85,10 +85,15 @@
     </div>
 
     <!-- Groups Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
-    routerLink="/group/details/:id"
+     
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"   
+
+       
+ 
     >
-      <div *ngFor="let group of filteredGroups" class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100">
+      <div *ngFor="let group of filteredGroups" 
+      class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100"
+      [routerLink]="'/group/details/' + group.groupID">
         <!-- Group Header -->
         <div class="p-4 border-b relative">
           <div class="absolute top-4 left-4">
@@ -162,15 +167,15 @@
           </div>
 
           <!-- Start Date -->
-          <div class="flex items-center gap-3 mb-3">
+          <!-- <div class="flex items-center gap-3 mb-3">
             <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
               <i class="pi pi-calendar-plus text-indigo-600"></i>
             </div>
             <div>
               <p class="text-xs text-gray-500">تاريخ البداية</p>
-              <p class="font-medium text-gray-800">{{ group.startDate | date:'dd/MM/yyyy' }}</p>
+              <p class="font-medium text-gray-800">{{ group | date:'dd/MM/yyyy' }}</p>
             </div>
-          </div>
+          </div> -->
         </div>
         
         <!-- Actions -->
@@ -187,6 +192,20 @@
                     class="p-button-rounded p-button-text text-red-600 hover:bg-red-50 transition-colors"></button>
           </div>
         </div>
+      
+        <!-- <div class="bg-gray-50 p-3 flex justify-between items-center">
+          <button pButton icon="pi pi-users" label="الطلاب" 
+         
+                  class="p-button-text text-gray-700 text-xs"></button>
+          <div class="flex gap-1">
+            <button pButton icon="pi pi-pencil" pTooltip="تعديل" tooltipPosition="top"
+                    (click)="showEditGroupForm(group)"
+                    class="p-button-rounded p-button-text text-amber-600 hover:bg-amber-50 transition-colors"></button>
+            <button pButton icon="pi pi-trash" pTooltip="حذف" tooltipPosition="top"
+                    (click)="deleteGroup(group.groupID.toString())"
+                    class="p-button-rounded p-button-text text-red-600 hover:bg-red-50 transition-colors"></button>
+          </div>
+        </div> -->
       </div>
       
       <!-- Empty State -->
@@ -203,88 +222,116 @@
         </div>
       </div>
     </div>
+
+
+    
   </div>
 </div>
 
 <!-- Add Group Dialog -->
 <p-dialog header="إضافة مجموعة جديدة" [(visible)]="showAddForm" [modal]="true" 
-          [closable]="true" [draggable]="false" [resizable]="false"
-          styleClass="w-full max-w-4xl" [dir]="'rtl'">
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          styleClass="w-full max-w-4xl shadow-xl" [dir]="'rtl'">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 p-6 bg-gray-50 rounded-lg">
+    
     <!-- Group Name -->
     <div class="field">
-      <label for="groupName" class="block text-sm font-medium text-gray-700 mb-2">اسم المجموعة *</label>
+      <label for="groupName" class="block text-sm font-semibold text-gray-800 mb-2">اسم المجموعة *</label>
       <input pInputText id="groupName" [(ngModel)]="groupForm.groupName" 
-             class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring focus:ring-emerald-200" 
+             class="w-full p-3 rounded-lg border-2 border-gray-200" 
              placeholder="أدخل اسم المجموعة" />
     </div>
 
-    <!-- Description -->
-    <div class="field">
-      <label for="description" class="block text-sm font-medium text-gray-700 mb-2">الوصف *</label>
-      <textarea pInputTextarea id="description" [(ngModel)]="groupForm.description" rows="3"
-                class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring focus:ring-emerald-200" 
-                placeholder="أدخل وصف المجموعة"></textarea>
-    </div>
+    <!-- Start Date -->
+    <!-- <div class="field">
+      <label for="startDate" class="block text-sm font-semibold text-gray-800 mb-2">تاريخ البداية *</label>
+      <p-calendar id="startDate" [(ngModel)]="groupForm.startDate" 
+                  [showIcon]="true" dateFormat="yy-mm-dd" [showButtonBar]="true"
+                  inputStyleClass="w-full p-3 rounded-lg border-2 border-gray-200"
+                  placeholder="اختر التاريخ"
+                  styleClass="w-full"></p-calendar>
+    </div> -->
 
+
+   <!-- <p-dropdown [options]="teacher" [(ngModel)]="groupForm.teacherId"
+            optionLabel="name" optionValue="id"
+            [showClear]="true" [filter]="true" filterBy="name"
+            placeholder="اختر المعلم" onfocus="loadTeachers()" onclick="loadTeachers()"
+            styleClass="w-full border-2 border-gray-200"> -->
+            <p-dropdown [options]="teacher" [(ngModel)]="groupForm.teacherId"
+            optionLabel="name" optionValue="id"
+            [showClear]="true" [filter]="true" filterBy="name"
+            placeholder="اختر المعلم"
+            styleClass="w-full border-2 border-gray-200">
+  
+  <ng-template pTemplate="loading" *ngIf="loading">
+    <div class="p-2 text-center">جاري تحميل البيانات...</div>
+  </ng-template>
+  
+  <ng-template let-teacher pTemplate="item">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-user"></i>
+      <span>{{ teacher.name }}</span>
+    </div>
+  </ng-template>
+</p-dropdown>
+  
     <!-- Max Capacity -->
     <div class="field">
-      <label for="maxCapacity" class="block text-sm font-medium text-gray-700 mb-2">السعة القصوى *</label>
+      <label for="maxCapacity" class="block text-sm font-semibold text-gray-800 mb-2">السعة القصوى *</label>
       <p-inputNumber id="maxCapacity" [(ngModel)]="groupForm.maxCapacity" 
                      [min]="1" [max]="100" [showButtons]="true"
-                     styleClass="w-full" inputStyleClass="w-full rounded-lg"></p-inputNumber>
+                     inputStyleClass="w-full p-3 rounded-lg border-2 border-gray-200"
+                     styleClass="w-full"></p-inputNumber>
     </div>
 
-    <!-- Start Date -->
+    <!-- Schedule Days -->
     <div class="field">
-      <label for="startDate" class="block text-sm font-medium text-gray-700 mb-2">تاريخ البداية *</label>
-      <p-calendar id="startDate" [(ngModel)]="groupForm.startDate" 
-                  [showIcon]="true" dateFormat="yy-mm-dd"
-                  styleClass="w-full" inputStyleClass="w-full rounded-lg"></p-calendar>
-    </div>
-
-    <!-- Schedule Day -->
-    <div class="field">
-      <label for="scheduleDay" class="block text-sm font-medium text-gray-700 mb-2">يوم الجدول *</label>
-      <p-dropdown id="scheduleDay" [options]="scheduleOptions" [(ngModel)]="groupForm.scheduleDay" 
-                  optionLabel="label" optionValue="value" 
-                  styleClass="w-full" placeholder="اختر يوم"></p-dropdown>
-    </div>
-
-    <!-- Start Time -->
-    <div class="field">
-      <label for="startTime" class="block text-sm font-medium text-gray-700 mb-2">وقت البداية *</label>
-      <input pInputText id="startTime" [(ngModel)]="groupForm.startTime" 
-             class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring focus:ring-emerald-200" 
-             placeholder="مثال: 09:00 AM" />
+      <label for="scheduleDays" class="block text-sm font-semibold text-gray-800 mb-2">أيام الجدول *</label>
+      <p-multiSelect id="scheduleDays" [options]="scheduleDayOptions" [(ngModel)]="groupForm.scheduleDays"
+                     optionLabel="label" [optionValue]="'value'" [filter]="false"
+                     defaultLabel="اختر الأيام" display="chip"
+                     panelStyleClass="z-50 shadow-lg"
+                     styleClass="w-full border-2 border-gray-200"></p-multiSelect>
     </div>
 
     <!-- Education Stage -->
     <div class="field">
-      <label for="educationStage" class="block text-sm font-medium text-gray-700 mb-2">المرحلة التعليمية *</label>
+      <label for="educationStage" class="block text-sm font-semibold text-gray-800 mb-2">المرحلة التعليمية *</label>
       <p-dropdown id="educationStage" [options]="educationStageOptions" [(ngModel)]="groupForm.educationStage" 
-                  optionLabel="label" optionValue="value" 
-                  styleClass="w-full" placeholder="اختر المرحلة"></p-dropdown>
+                  optionLabel="label" optionValue="value" [filter]="false"
+                  panelStyleClass="z-50 shadow-lg"
+                  styleClass="w-full border-2 border-gray-200"
+                  placeholder="اختر المرحلة"></p-dropdown>
     </div>
+
+    <!-- Start Time -->
+    <!-- <div class="field">
+      <label for="startTime" class="block text-sm font-semibold text-gray-800 mb-2">وقت البداية *</label>
+      <input pInputText id="startTime" [(ngModel)]="groupForm.startTime" 
+             class="w-full p-3 rounded-lg border-2 border-gray-200" 
+             placeholder="مثال: 09:00 ص" />
+    </div> -->
 
     <!-- Grade Level -->
     <div class="field">
-      <label for="gradeLevel" class="block text-sm font-medium text-gray-700 mb-2">الصف *</label>
+      <label for="gradeLevel" class="block text-sm font-semibold text-gray-800 mb-2">الصف *</label>
       <p-dropdown id="gradeLevel" [options]="gradeLevels" [(ngModel)]="groupForm.gradeLevel" 
-                  optionLabel="label" optionValue="value" 
-                  styleClass="w-full" placeholder="اختر الصف"></p-dropdown>
+                  optionLabel="label" optionValue="value" [filter]="false"
+                  panelStyleClass="z-50 shadow-lg"
+                  styleClass="w-full border-2 border-gray-200"
+                  placeholder="اختر الصف"></p-dropdown>
     </div>
+
   </div>
 
-  <div class="flex justify-end gap-3 mt-6">
-    <button pButton label="إلغاء" icon="pi pi-times" 
-            (click)="hideAddForm()"
-            class="p-button-text text-gray-600"></button>
-    <button pButton label="حفظ" icon="pi pi-check" 
-            (click)="submitAddForm()"
-            class="p-button-primary bg-emerald-600 hover:bg-emerald-700 border-emerald-600"></button>
+  <div class="flex justify-end gap-4 p-5 border-t border-gray-200 bg-white rounded-b-lg">
+    <button pButton label="إلغاء" (click)="hideAddForm()"
+            class="p-button-text text-gray-600 hover:bg-gray-100 px-5 py-2 rounded-lg border border-gray-300"></button>
+    <button pButton label="حفظ" (click)="submitAddForm()"
+            class="bg-blue-600 hover:bg-blue-700 border-blue-600 text-white px-5 py-2 rounded-lg"></button>
   </div>
 </p-dialog>
+
 
 <!-- Edit Group Dialog -->
 <p-dialog header="تعديل المجموعة" [(visible)]="showEditForm" [modal]="true" 

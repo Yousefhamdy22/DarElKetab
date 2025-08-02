@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+// import { HttpClient } from "@angular/common/http";
 
-
+import { HttpClient, HttpParams, HttpHeaders } from "@angular/common/http";
 import { environment } from "../../../../environment/environment";
 import { Group , ApiResponse } from "./group.models";
 import { Observable, throwError as rxjsThrowError } from "rxjs";
@@ -97,8 +97,20 @@ getGroupForSesssion(): Observable<Group[]> {
     }
 
     // Create a new group
-    createGroup(groupData: GroupFormData): Observable<Group> {
-        return this.http.post<Group>(`${this.apiBaseurl}/Groups`, groupData);
+    // createGroup(groupData: any): Observable<Group> {
+    //     return this.http.post<Group>(`${this.apiBaseurl}`, groupData);
+    // }
+    createGroup(groupData: any): Observable<any> {
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json'
+      });
+  
+      return this.http.post(this.apiBaseurl, groupData, { headers }).pipe(
+        catchError(error => {
+          console.error('API Error:', error);
+          return throwError(error);
+        })
+      );
     }
   
     updateGroup(id: number,groupData: GroupFormData): Observable<Group> {
@@ -163,40 +175,41 @@ getGroupForSesssion(): Observable<Group[]> {
         return this.http.get<Group[]>(`${this.apiBaseurl}/by-stage-grade?stage=${stage}&stageLevel=${stageLevel}`);
     }
     // Booking/groups_
-    getGropsByStageAndStageLevel(params?: groupFilterDto): Observable<GroupResponseDto[]> {
-      const httpParams: any = {};
-      if (params) {
-        if (params.stageId !== null && params.stageId !== undefined) httpParams.stageId = params.stageId;
-        if (params.levelId !== null && params.levelId !== undefined) httpParams.levelId = params.levelId;
-      }
-      return this.http.get<GroupResponseDto[]>('http://localhost:5079/api/Booking/groups', {
-        params: httpParams,
-      }).pipe(
-        catchError((err) => {
-          console.log(err);
-          return throwError(() => new Error(err));
-        }),
-      );
-    }
-
-    // getGropsByStageAndStageLevel(params?: groupFilterDto): Observable<GroupResponseDto> {
-    //   // Remove nulls or convert to empty string
+    // getGropsByStageAndStageLevel(params?: groupFilterDto): Observable<GroupResponseDto[]> {
     //   const httpParams: any = {};
     //   if (params) {
     //     if (params.stageId !== null && params.stageId !== undefined) httpParams.stageId = params.stageId;
     //     if (params.levelId !== null && params.levelId !== undefined) httpParams.levelId = params.levelId;
     //   }
-    //   return this.http
-    //     .get<GroupResponseDto>(this.apiBaseurl + '/filter', {
-    //       params: httpParams,
-    //     })
-    //     .pipe(
-    //       catchError((err) => {
-    //         console.log(err);
-    //         return throwError(() => new Error(err));
-    //       }),
-    //     );
+    //   return this.http.get<GroupResponseDto[]>('http://localhost:5079/api/Booking/groups', {
+    //     params: httpParams,
+    //   }).pipe(
+    //     catchError((err) => {
+    //       console.log(err);
+    //       return throwError(() => new Error(err));
+    //     }),
+    //   );
     // }
+
+    getGropsByStageAndStageLevel(params: groupFilterDto): Observable<GroupResponseDto[]> {
+      // Validate parameters
+      if (!params.stageId || !params.levelId) {
+        return throwError(() => new Error('Both stageId and levelId are required'));
+      }
+    
+      const httpParams = new HttpParams()
+        .set('stageId', params.stageId.toString())
+        .set('levelId', params.levelId.toString());
+    
+      return this.http.get<GroupResponseDto[]>('http://localhost:5079/api/Booking/groups', {
+        params: httpParams
+      }).pipe(
+        catchError(error => {
+          console.error('API Error:', error);
+          return throwError(() => error);
+        })
+      );
+    }
 
 }
 function throwError(errorFactory: () => Error): Observable<never> {

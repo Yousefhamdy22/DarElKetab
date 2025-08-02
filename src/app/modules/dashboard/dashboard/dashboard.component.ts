@@ -1,6 +1,7 @@
 import { Component ,OnDestroy , OnInit} from '@angular/core';
 import { SidebarService } from '../dashboard/sidebar/sidebar.service';
 import { Subscription } from 'rxjs';
+import { AuthService } from '../../../auth/services/AuthService.service';
 interface SummaryData {
   totalStudents: number;
   memorizedVerses: number;
@@ -38,6 +39,8 @@ export class DashboardComponent  implements OnInit, OnDestroy {
   isMobile = false;
   sidebarOpen = false;
   isDropdownOpen = false;
+
+
   groups: Group[] = [
     { id: 1, name: 'مجموعة 1', studentCount: 20, supervisor: 'أحمد' },
     { id: 2, name: 'مجموعة 2', studentCount: 15, supervisor: 'محمد' },
@@ -109,7 +112,13 @@ export class DashboardComponent  implements OnInit, OnDestroy {
       rating: 3
     }
   ];
+isLoggedIn(): boolean {
+  return this.authServcie.isLoggedIn(); // Make sure you have this method
+}
 
+onLogout() {
+  this.authServcie.logout();
+}
   absentStudents = [
     { name: 'سارة عبدالله', group: 'المجموعة ١', absenceCount: 2 },
     { name: 'خالد سعيد', group: 'المجموعة ٣', absenceCount: 3 },
@@ -172,7 +181,10 @@ export class DashboardComponent  implements OnInit, OnDestroy {
 
   // subscriptions: Subscription[] = [];
 
-  constructor(private sidebarService: SidebarService) {}
+  constructor(private sidebarService: SidebarService
+  , private authServcie: AuthService
+
+  ) {}
 
   ngOnInit() {
     this.subscribeToSidebar();

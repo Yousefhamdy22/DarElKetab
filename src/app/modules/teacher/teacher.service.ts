@@ -23,11 +23,11 @@ export class TeacherService {
     return this.http.get<Teacher>(`${this.apiBadeUrl}/${id}`);
   }
 
-  createTeacher(teacher: Omit<Teacher, 'id'>): Observable<Teacher> {
+  createTeacher(teacher: FormData): Observable<Teacher> {
     return this.http.post<Teacher>(this.apiBadeUrl, teacher);
   }
 
-  updateTeacher(id: number, teacher: Partial<Teacher>): Observable<Teacher> {
+  updateTeacher(id: string, teacher: Partial<Teacher>): Observable<Teacher> {
     return this.http.put<Teacher>(`${this.apiBadeUrl}/${id}`, teacher);
   }
 

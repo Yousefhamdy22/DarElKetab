@@ -2,12 +2,16 @@
 import { Component, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { AttendanceService } from '../attendance.service';
-import { Attendance } from '../models';
-import { Group } from '../../groups/group.models';
+import { Attendance ,AttendanceRecordDto , GroupAttendanceRequest  } from '../models';
+import { Group  , GroupApi} from '../../groups/group.models';
 import { Teacher } from '../../teacher/teacher.model';
 import { GroupService } from '../../groups/group.service';
 import { TeacherService } from '../../teacher/teacher.service';
 import { Student } from '../../students/student.model';
+import { AuthService } from '../../../auth/services/AuthService.service';
+
+
+
 
 @Component({
   selector: 'app-daily-attendance',
@@ -16,7 +20,7 @@ import { Student } from '../../students/student.model';
   providers: [MessageService]
 })
 export class DailyAttendanceComponent implements OnInit {
-
+  noStudentsFound : boolean = false;
   getInitials(name: string): string {
     if (!name) return '';
     return name
@@ -26,7 +30,7 @@ export class DailyAttendanceComponent implements OnInit {
   }
 
   selectedDate: Date = new Date();
-  selectedGroup: number | null = null; // Changed to store just the groupID
+  selectedGroup: number | null = null; 
   selectedTeacher: Teacher | null = null;
   searchQuery: string = '';
 
@@ -52,6 +56,7 @@ export class DailyAttendanceComponent implements OnInit {
   constructor(
     private attendanceService: AttendanceService,
     private groupService: GroupService,
+    private authService: AuthService, 
     private teacherService: TeacherService,
     private messageService: MessageService
   ) { }
@@ -61,23 +66,65 @@ export class DailyAttendanceComponent implements OnInit {
     this.loadTeachers();
     this.checkForDraft();
   }
+  mapToCommand(
+    frontendData: any[], 
+    selectedDate: Date,
+    sessionId: number // Add sessionId parameter
+  ): GroupAttendanceRequest {
+    const userId = this.authService.getUserId();
+    
+    if (!userId) {
+      throw new Error('User ID not available');
+    }
+
+    return {
+      groupId: frontendData[0]?.groupId,
+      sessionId: sessionId, // Include sessionId
+      date: selectedDate.toISOString(),
+      markedBy: userId,
+      records: frontendData.map(record => this.mapAttendanceRecord(record))
+    };
+  }
+
+  private mapAttendanceRecord(record: any): AttendanceRecordDto {
+    return {
+      studentId: record.studentId,
+      studentName: record.studentName,
+      studentCode: record.studentCode,
+      attendanceStatus: record.attendanceStatus,
+      notes: record.notes || '',
+      recentAttendance: (record.recentAttendance || []).map((history: any) => ({
+        date: history.date,
+        status: history.status,
+        sessionName: history.sessionName
+      }))
+    };
+  }
+  private mapApiGroupToGroup(apiGroup: GroupApi): Group {
+    return {
+      groupID: apiGroup.groupId,
+      groupName: apiGroup.groupName,
+      teacherId: Number(apiGroup.teacherId),
+      scheduleDay: Array.isArray(apiGroup.scheduleDays) ? apiGroup.scheduleDays.join(', ') : '',
+      maxStudentNumber: apiGroup.maxCapacity,
+      stage: apiGroup.educationStage,
+      stageLevel: apiGroup.gradeLevel?.toString() || '',
+      createdAt: new Date(apiGroup.createdAt),
+      fees: 0, 
+   
+    };
+  }
 
   loadGroups(): void {
     this.loading = true;
     this.groupService.getGroups().subscribe({
       next: (response: any) => {
-        console.log('Groups API response:', response);
-        
-        // Handle different response formats
-        this.groups = Array.isArray(response) ? response : (response?.data || []);
-        
-        // Ensure groups have the required properties
-        this.groups = this.groups.map(group => ({
-          ...group,
-          groupName: group.groupName || `المجموعة ${group.groupID}`
-        }));
-        
-        console.log('Processed groups:', this.groups);
+        const apiGroups: GroupApi[] = Array.isArray(response)
+          ? response
+          : (response?.data || []);
+        // Map API groups to Group[]
+        this.groups = apiGroups.map(apiGroup => this.mapApiGroupToGroup(apiGroup));
+        console.log('Mapped groups:', this.groups);
         this.loading = false;
       },
       error: (err) => {
@@ -86,24 +133,66 @@ export class DailyAttendanceComponent implements OnInit {
     });
   }
 
-  // Fixed onGroupChange method
+
+  loadGroupStudents(groupId: number): void {
+    if (!groupId) {
+      console.error('Invalid group ID:', groupId);
+      return;
+    }
+    this.loading = true;
+    this.noStudentsFound = false;
+    
+    this.groupService.getGroupWithStudents(groupId).subscribe({
+      next: (response) => {
+        this.students = [];
+        this.filteredStudents = [];
+        
+        if (response.data?.students?.length) {
+          this.students = this.transformStudents(response.data.students);
+          this.filteredStudents = [...this.students];
+          this.noStudentsFound = false;
+        } else {
+          this.noStudentsFound = true;
+        }
+        
+        this.loading = false;
+      },
+      error: (error) => {
+        this.loading = false;
+        this.students = [];
+        this.filteredStudents = [];
+        this.noStudentsFound = true;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'خطأ',
+          detail: 'فشل في تحميل بيانات الطلاب',
+          life: 3000
+        });
+      }
+    });
+  }
+  
+  private transformStudents(students: Student[]): Student[] {
+    return students.map(student => ({
+      ...student,
+      id: student.studentID || student.studentID,
+     
+      registrationDate: student.registrationDate ? new Date(student.registrationDate) : new Date()
+    }));
+  }
+
   onGroupChange(event: any): void {
-    console.log('Group selection event:', event);
+ 
+    const groupID = event.value || this.selectedGroup;
     
-    // Handle both direct value and event object
-    const groupId = event?.value || event;
-    this.selectedGroup = groupId;
-    
-    console.log('Selected group ID:', this.selectedGroup);
-    
-    if (this.selectedGroup) {
+    if (groupID && !isNaN(Number(groupID))) {
       this.messageService.add({
         severity: 'info',
         summary: 'جاري التحميل',
         detail: 'جاري تحميل قائمة الطلاب...',
         life: 2000
       });
-      this.loadStudentsByGroup(this.selectedGroup);
+      this.loadGroupStudents(groupID);
     } else {
       this.resetStudents();
     }
@@ -118,73 +207,6 @@ export class DailyAttendanceComponent implements OnInit {
     console.log('Dropdown closed');
   }
 
-  // Helper method to get selected group name
-  getSelectedGroupName(): string {
-    if (!this.selectedGroup) return '';
-    const group = this.groups.find(g => g.groupID === this.selectedGroup);
-    return group?.groupName || '';
-  }
-
-  loadStudentsByGroup(groupId: number): void {
-    if (!groupId) {
-      this.resetStudents();
-      return;
-    }
-
-    console.log('Loading students for group ID:', groupId);
-    this.loading = true;
-    
-    this.groupService.getGroupWithStudents(groupId).subscribe({
-      next: (response: any) => {
-        console.log('Students API response:', response);
-        
-        const students = this.processStudentResponse(response);
-        console.log('Processed students:', students);
-        
-        if (students && students.length > 0) {
-          // Get the group name for display
-          const groupName = this.getSelectedGroupName();
-          
-          this.students = students.map(student => ({
-            studentID: student.studentID || student.id,
-            name: student.name,
-            group: groupName,
-            initials: this.getInitials(student.name),
-            absenceCount: student.absenceCount || 0,
-            status: 'present', // Default status
-            notes: '',
-            // Include all other student properties
-            ...student
-          }));
-          
-          this.filteredStudents = [...this.students];
-          console.log('Final mapped students:', this.filteredStudents);
-          
-          this.messageService.add({
-            severity: 'success',
-            summary: 'تم التحميل بنجاح',
-            detail: `تم تحميل ${this.students.length} طالب من مجموعة ${groupName}`,
-            life: 3000
-          });
-        } else {
-          this.resetStudents();
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'لا يوجد طلاب',
-            detail: 'المجموعة المحددة لا تحتوي على أي طلاب',
-            life: 3000
-          });
-        }
-        
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading students:', err);
-        this.handleError('فشل في تحميل قائمة الطلاب. يرجى المحاولة مرة أخرى.', err);
-        this.resetStudents();
-      }
-    });
-  }
 
   loadTeachers(): void {
     this.teacherService.getAllTeachers().subscribe({
@@ -220,35 +242,30 @@ export class DailyAttendanceComponent implements OnInit {
   }
 
   // Helper method to process different API response formats
-  private processStudentResponse(response: any): any[] {
-    console.log('Processing student response:', response);
+  // private processStudentResponse(response: any): any[] {
+  //   console.log('Processing student response:', response);
     
-    // Try different possible response structures
-    if (response?.data?.students) {
-      return response.data.students;
-    }
+  //   // Try different possible response structures
+  //   if (response?.data?.students) {
+  //     return response.data.students;
+  //   }
     
-    if (response?.students) {
-      return response.students;
-    }
+  //   if (response?.students) {
+  //     return response.students;
+  //   }
     
-    if (response?.data && Array.isArray(response.data)) {
-      return response.data;
-    }
+  //   if (response?.data && Array.isArray(response.data)) {
+  //     return response.data;
+  //   }
     
-    if (Array.isArray(response)) {
-      return response;
-    }
+  //   if (Array.isArray(response)) {
+  //     return response;
+  //   }
     
-    return [];
-  }
+  //   return [];
+  // }
 
-  // Reset students data
-  private resetStudents(): void {
-    this.students = [];
-    this.filteredStudents = [];
-    this.loading = false;
-  }
+
 
   // Enhanced error handling
   private handleError(message: string, error: any): void {
@@ -352,7 +369,7 @@ export class DailyAttendanceComponent implements OnInit {
       // Set the selected group
       if (draft.groupId && this.groups.length > 0) {
         this.selectedGroup = draft.groupId;
-        this.loadStudentsByGroup(draft.groupId);
+        // this.loadStudentsByGroup(draft.groupId);
       }
       
       // Set the selected teacher
@@ -375,7 +392,7 @@ export class DailyAttendanceComponent implements OnInit {
           });
           this.filteredStudents = [...this.students];
         }
-      }, 1000); // Increased timeout to ensure students are loaded
+      }, 1000);
       
       this.messageService.add({
         severity: 'success',
@@ -403,7 +420,12 @@ export class DailyAttendanceComponent implements OnInit {
       });
     }
   }
-
+  resetStudents(): void {
+    this.students = [];
+    this.filteredStudents = [];
+    this.noStudentsFound = false;
+    this.selectedGroup = null;
+  }
   resetForm(): void {
     this.selectedDate = new Date();
     this.selectedGroup = null;
@@ -421,9 +443,62 @@ export class DailyAttendanceComponent implements OnInit {
     });
   }
 
+ 
+  // saveAttendance(): void {
+  //   this.formSubmitted = true;
+    
+  //   if (!this.selectedGroup || this.filteredStudents.length === 0) {
+  //     this.messageService.add({
+  //       severity: 'warn',
+  //       summary: 'تنبيه',
+  //       detail: 'الرجاء اختيار مجموعة وتحديد حالة الحضور للطلاب'
+  //     });
+  //     return;
+  //   }
+    
+  //   this.submitting = true;
+    
+  //   const attendanceData: Attendance[] = this.filteredStudents.map(student => ({
+  //     date: this.selectedDate,
+  //     status: student.status || 'present',
+  //     notes: student.notes || '',
+  //     studentName : student.name,
+  //     studentID: student.studentID,
+  //     groupId: this.selectedGroup!,
+  //     AttendanceStatus: []
+  //   }));
+    
+  //   console.log('Saving attendance data:', attendanceData , this.selectedDate);
+    
+  //   const command = this.mapToCommand(attendanceData, this.selectedDate, 1); // Add sessionId as needed
+  //   this.attendanceService.saveGroupAttendance(command).subscribe({
+  //     next: (response: any) => {
+  //       this.messageService.add({
+  //         severity: 'success',
+  //         summary: 'تم التسجيل',
+  //         detail: `تم تسجيل حضور ${this.filteredStudents.length} طالب بنجاح`
+  //       });
+  //       this.attendanceRecorded = true;
+  //       localStorage.removeItem('attendanceDraft');
+  //       this.submitting = false;
+  //     },
+  //     error: (err) => {
+  //       this.messageService.add({
+  //         severity: 'error',
+  //         summary: 'خطأ',
+  //         detail: 'فشل في حفظ سجل الحضور. يرجى المحاولة مرة أخرى'
+  //       });
+  //       console.error('Error saving attendance:', err);
+  //       this.submitting = false;
+  //     }
+  //   });
+  // }
+//-------------------------
+
   saveAttendance(): void {
     this.formSubmitted = true;
     
+    // Validate required fields
     if (!this.selectedGroup || this.filteredStudents.length === 0) {
       this.messageService.add({
         severity: 'warn',
@@ -432,20 +507,47 @@ export class DailyAttendanceComponent implements OnInit {
       });
       return;
     }
+
+    // Validate all students have required data
+    const invalidStudents = this.filteredStudents.filter(
+      student => !student.studentID || !student.name
+    );
+    
+    // if (invalidStudents.length > 0) {
+    //   this.messageService.add({
+    //     severity: 'error',
+    //     summary: 'خطأ',
+    //     detail: 'بعض سجلات الطلاب تفتقد بيانات أساسية (رقم الطالب أو الاسم)'
+    //   });
+    //   return;
+    // }
     
     this.submitting = true;
     
-    const attendanceData: Attendance[] = this.filteredStudents.map(student => ({
-      date: this.selectedDate,
-      status: student.status || 'present',
+    // Prepare attendance data
+    const attendanceData = this.filteredStudents.map(student => ({
+      studentId: student.studentID,
+      // studentName: student.name,
+      // studentCode: student.studentCode || '',
+      attendanceStatus: student.status || 'Present',
       notes: student.notes || '',
-      studentID: student.studentID,
-      groupId: this.selectedGroup!
+      groupId: this.selectedGroup!,
+      recentAttendance: [] // Add recent attendance if available
     }));
     
-    console.log('Saving attendance data:', attendanceData);
+    console.log('Saving attendance data:', attendanceData, this.selectedDate);
     
-    this.attendanceService.saveGroupAttendance(attendanceData).subscribe({
+    // Create command object
+    const command = {
+      groupId: this.selectedGroup,
+      // sessionId: 1, // You should get this from your component state
+      date: this.selectedDate.toISOString(),
+      markedBy: this.authService.getUserId(), // Make sure to inject AuthService
+      records: attendanceData
+      
+    };
+    
+    this.attendanceService.saveGroupAttendance(command).subscribe({
       next: (response: any) => {
         this.messageService.add({
           severity: 'success',
@@ -457,17 +559,30 @@ export class DailyAttendanceComponent implements OnInit {
         this.submitting = false;
       },
       error: (err) => {
+        let errorDetail = 'فشل في حفظ سجل الحضور. يرجى المحاولة مرة أخرى';
+        
+        // Handle validation errors specifically
+        if (err.status === 400 && err.error?.errors) {
+          const firstError = Object.values(err.error.errors)[0];
+          // errorDetail = firstError[0] || errorDetail;
+        }
+        
         this.messageService.add({
           severity: 'error',
           summary: 'خطأ',
-          detail: 'فشل في حفظ سجل الحضور. يرجى المحاولة مرة أخرى'
+          detail: errorDetail
         });
         console.error('Error saving attendance:', err);
         this.submitting = false;
       }
     });
   }
-
+ // Helper method to get selected group name
+ getSelectedGroupName(): string {
+  if (!this.selectedGroup) return '';
+  const group = this.groups.find(g => g.groupID === this.selectedGroup);
+  return group?.groupName || '';
+}
   toggleSidebar(): void {
     this.sidebarVisible = !this.sidebarVisible;
     const sidebar = document.querySelector('app-sidebar');

@@ -3,18 +3,9 @@ import { GroupService } from '../group.service';
 import { MessageService } from 'primeng/api';
 import { Group } from '../group.models';
 import { Router } from '@angular/router';
+import { TeacherService } from '../../teacher/teacher.service';
+import { Teacher } from '../../teacher/teacher.model';
 
-// interface Group {
-//   id: string
-//   name: string
-//   description: string
-//   teacher: string
-//   schedule: string
-//   location: string
-//   currentStudents: number
-//   maxStudents: number
-//   active: boolean
-// }
 
 interface GroupFormData {
   teacherId: number;
@@ -22,7 +13,7 @@ interface GroupFormData {
   description: string;
   maxCapacity: number;
   startDate: string;
-  scheduleDay: string;
+  scheduleDay:  string;
   startTime: string;
   educationStage: string;
   gradeLevel: number;
@@ -41,25 +32,37 @@ interface DropdownOption {
 export class GroupListComponent  implements OnInit{
   groups: Group[] = [];
   filteredGroups: Group[] = [];
+
+  teacher: Teacher[] = [];
+  selectedTeacher: any = null;
   
+
+  loading = false;
   // Form variables
   showAddForm = false;
   showEditForm = false;
   editingGroupId: string | null = null;
-  
-  groupForm: GroupFormData = {
+
+  groupForm: any = {
     teacherId: 0,
     groupName: '',
-    description: '',
-    maxCapacity: 100,
-    startDate: '',
-    scheduleDay: 'Sunday',
-    startTime: '',
-    educationStage: 'Elementary',
-    gradeLevel: 6,
-    createdBy: ''
+    maxCapacity: 20,
+    // startDate: new Date().toISOString(),
+    scheduleDays: [] as string[],
+    educationStage: '',
+    gradeLevel: 1,
+    createdBy: 'admin' 
   };
 
+  scheduleDayOptions = [
+    { label: 'الأحد', value: 'Sunday' },
+    { label: 'الإثنين', value: 'Monday' },
+    { label: 'الثلاثاء', value: 'Tuesday' },
+    { label: 'الأربعاء', value: 'Wednesday' },
+    { label: 'الخميس', value: 'Thursday' },
+    { label: 'الجمعة', value: 'Friday' },
+    { label: 'السبت', value: 'Saturday' }
+  ];
   // Filter variables
   searchText = '';
   selectedStatus: DropdownOption | null = null;
@@ -95,31 +98,88 @@ export class GroupListComponent  implements OnInit{
     { label: "الصف السادس", value: "6" }
   ];
 
+  getDayLabel(value: string): string {
+    const day = this.scheduleDayOptions.find(opt => opt.value === value);
+    return day ? day.label : value;
+  }
+
   constructor(
     private groupService: GroupService,
+    private teacherService: TeacherService,
     private messageService: MessageService,
     private router: Router
   ) {}
 
   ngOnInit() {
     this.loadGroups();
+    this.loadTeachers();
   }
+
 
   loadGroups() {
     this.groupService.getGroups().subscribe({
       next: (response: any) => {
-        console.log('Response received:', response);
-        this.groups = Array.isArray(response.data) ? response.data : [];
-        console.log('Groups extracted:', this.groups);
+        console.log('API Response:', response);
+        
+        // Map API response to your Group model
+        this.groups = response.data.map((apiGroup: any) => ({
+          groupID: apiGroup.groupId,  // Fix casing here
+          groupName: apiGroup.groupName,
+          teacherId: apiGroup.teacherId,
+          teacher: apiGroup.teacherName ? { id: apiGroup.teacherId, name: apiGroup.teacherName } : undefined,
+          scheduleDay: apiGroup.scheduleDays?.join(', ') || '',
+          maxStudentNumber: apiGroup.maxCapacity,
+          memberCount: apiGroup.memberCount,
+          stage: this.getEducationStageName(apiGroup.educationStage),
+          stageLevel: apiGroup.gradeLevel.toString(),
+          startDate: new Date(apiGroup.createdAt),
+          endDate: new Date(), // Default end date
+          currentStudents: apiGroup.memberCount,
+          active: apiGroup.status === 'Active',
+          fees: 0
+        }));
+        
         this.applyFilters();
       },
+      error: (err) => {/* error handling */}
+    });
+  }
+  
+  private getEducationStageName(stage: number): string {
+    const stages = ['ابتدائي', 'متوسط', 'ثانوي'];
+    return stages[stage] || 'غير محدد';
+  }
+
+  loadTeachers() {
+    console.log('Starting to load teachers...');
+    
+    this.teacherService.getAllTeachers().subscribe({
+      next: (response: any) => {
+        console.log('API Response:', response);
+        
+        // Handle different possible response structures
+        const responseData = response.data || response.items || response;
+        
+        if (Array.isArray(responseData)) {
+          this.teacher = responseData;
+          console.log('Successfully loaded teachers:', this.teacher.length);
+        } else if (responseData && typeof responseData === 'object') {
+          // Handle case where data is an object with array inside
+          this.teacher = Object.values(responseData);
+          console.log('Converted object to teachers array:', this.teacher);
+        } else {
+          console.warn('Unexpected data format:', response);
+          this.teacher = [];
+        }
+      },
       error: (err) => {
+        console.error('Error loading teachers:', err);
         this.messageService.add({
           severity: 'error',
           summary: 'خطأ',
-          detail: 'فشل في تحميل البيانات'
+          detail: 'فشل في تحميل البيانات: ' + (err.message || '')
         });
-        this.groups = [];
+        this.teacher = [];
       }
     });
   }
@@ -154,7 +214,7 @@ export class GroupListComponent  implements OnInit{
     return this.groups.filter((group) => group.active).length;
   }
 
-  // Form methods
+
   showAddGroupForm() {
     this.resetForm();
     this.showAddForm = true;
@@ -168,7 +228,7 @@ export class GroupListComponent  implements OnInit{
       groupName: group.groupName || '',
       description: group.description || '',
       maxCapacity: group.maxStudentNumber || 100,
-      startDate: group.startDate.toString() || '',
+      // startDate: group.startDate.toString() || '',
       scheduleDay: group.scheduleDay || 'Sunday',
       startTime: group.schedule || '',
       educationStage: group.stage || 'Elementary',
@@ -204,27 +264,39 @@ export class GroupListComponent  implements OnInit{
     this.resetForm();
   }
 
+  // submitAddForm() {
+  //   const payload = {
+  //     command: "CreateGroup", // or whatever command name the API expects
+  //     ...this.groupForm,
+  //     // startDate: this.groupForm.startDate ? new Date(this.groupForm.startDate).toISOString() : null,
+  //     // Remove the .join() - keep scheduleDays as an array
+  //     scheduleDays: this.groupForm.scheduleDays // assuming this is already an array
+  //   };
+  
+  //   this.groupService.createGroup(payload).subscribe({
+  //     next: (response) => {
+  //       this.showAddForm = false;
+  //     },
+  //     error: (err) => {
+  //       console.error('Error creating group:', err);
+  //     }
+  //   });
+  // }
   submitAddForm() {
-    if (this.validateForm()) {
-      this.groupService.createGroup(this.groupForm).subscribe({
-        next: (response) => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'نجح',
-            detail: 'تم إضافة المجموعة بنجاح'
-          });
-          this.hideAddForm();
-          this.loadGroups();
-        },
-        error: (err) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'خطأ',
-            detail: 'فشل في إضافة المجموعة'
-          });
-        }
-      });
-    }
+    const payload = {
+      command: "CreateGroup",
+      ...this.groupForm,
+      scheduleDays: this.groupForm.scheduleDays
+    };
+  
+    this.groupService.createGroup(payload).subscribe({
+      next: (response) => {
+        this.showAddForm = false;
+      },
+      error: (err) => {
+        console.error('Error creating group:', err);
+      }
+    });
   }
 
   submitEditForm() {
@@ -282,14 +354,6 @@ export class GroupListComponent  implements OnInit{
       return false;
     }
 
-    if (!this.groupForm.description.trim()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'تحذير',
-        detail: 'وصف المجموعة مطلوب'
-      });
-      return false;
-    }
 
     if (this.groupForm.maxCapacity <= 0) {
       this.messageService.add({
@@ -309,14 +373,7 @@ export class GroupListComponent  implements OnInit{
       return false;
     }
 
-    if (!this.groupForm.startTime.trim()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'تحذير',
-        detail: 'وقت البداية مطلوب'
-      });
-      return false;
-    }
+  
 
     return true;
   }

@@ -139,46 +139,22 @@ export class BookingComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadInitialData();
-    // this.loadGroups();
-  //   this.loadGroup();
-    this.setupFormSubscriptions();
+
+    this.bookingForm.get('educationStage')?.valueChanges.subscribe(() => {
+      this.onEducationStageChange();
+    });
+  
+    // Listen for grade changes
+    this.bookingForm.get('grade')?.valueChanges.subscribe(() => {
+      if (this.bookingForm.get('educationStage')?.value) {
+        this.loadGroup();
+      }
+    });
+  
+       this.loadInitialData();
+       this.setupFormSubscriptions();
   }
 
-  // Add these to your component
-
-
-
-loadGroups(): void {
-  if (!this.educationStage?.value || !this.grade?.value) return;
-  
-  this.loadingStates.groups = true;
-  this.groupsError = false;
-  
-  this.groupService.getGroups().subscribe({
-    next: (response: any) => {
-      // Process response
-      console.log(response , "Group data")
-      this.availableGroups = Array.isArray(response) ? response : (response?.data || []);
-      
-      // Enhance group objects
-      this.availableGroups = this.availableGroups.map(group => ({
-        ...group,
-        groupName: group.groupName || `المجموعة ${group.groupID}`,
-        // stage: this.getStageName(group.stageLevel) 
-      }));
-      
-      this.loadingStates.groups = false;
-    },
-    error: (err) => {
-      this.groupsError = true;
-      this.loadingStates.groups = false;
-      console.error('Failed to load groups:', err);
-    }
-  });
-}
-
-// Add this to update selected group when dropdown changes
 
 
   private createForm(): FormGroup {
@@ -189,10 +165,14 @@ loadGroups(): void {
       studentGender: ['', Validators.required],
       educationStage: ['', Validators.required],
       grade: ['', Validators.required],
+      userId: [null],        // Optional (no Validators.required)
+      fatherPhone: [null],   // Optional
+      studentCode: [null],  // Optional
       
       // Booking Information
       groupId: ['', Validators.required],
       teacherId: ['', Validators.required],
+      groupTime: [null],    // Optional
       amount: ['', [Validators.required, Validators.min(0.01)]],
       paidAmount: ['', [Validators.required, Validators.min(0)]],
       notes: ['']
@@ -206,9 +186,11 @@ loadGroups(): void {
     // this.loadStudents();
     
     // Load other data that doesn't depend on form values
-    this.loadAllGroups();
+    // this.loadAllGroups();
     this.loadAllTeachers();
   }
+
+
   private loadStudents(): void {
     this.loadingStates.students = true;
     
@@ -232,124 +214,90 @@ loadGroups(): void {
     });
   }
 
-// async loadGroup()
-// {
-//    this.loadingStates.groups = false;
-//    const params: groupFilterDto = {
-//   stageId: this.selectedStage ? Number(this.selectedStage) : null,
-//   levelId: this.selectedGrade ? Number(this.selectedGrade) : null
-// };
 
-//    this.groupService.getGropsByStageAndStageLevel(params)
-//    .subscribe(
-//     (response: GroupResponseDto) => {
-//       // this.groups = Array.isArray(response) ? response : [];
-//       this.groups =  
 
-//     })
-
-// }
 async loadGroup() {
-  this.loadingStates.groups = true; // Set loading to true at start
+  // Make sure we have valid stage and grade values
+  this.selectedStage = this.bookingForm.get('educationStage')?.value;
+  this.selectedGrade = this.bookingForm.get('grade')?.value;
 
-  const params: groupFilterDto = {
-    stageId: this.selectedStage ? Number(this.selectedStage) : null,
-    levelId: this.selectedGrade ? Number(this.selectedGrade) : null
-  };
-
-  this.groupService.getGropsByStageAndStageLevel(params).subscribe(
-    (response: GroupResponseDto[]) => { 
-
-      console.log(response , "Group as Filter")
-      this.groups = response.map(groupDto => ({
-        groupID: groupDto.groupId,
-        groupName: groupDto.groupName,
-        description: groupDto.description,
-        teacherId: groupDto.teacherId,
-        teacher: undefined, // or remove this line if not needed
-        scheduleDay: groupDto.scheduleDay || '',
-        maxStudentNumber: groupDto.maxCapacity,
-        stage: groupDto.educationStage.toString(),
-        stageLevel: groupDto.gradeLevel.toString(),
-        startDate: new Date(groupDto.startDate),
-        endDate: new Date(),
-        currentStudents: groupDto.memberCount,
-        active: groupDto.status === 'Active',
-        fees: 0,
-        // ...other fields as needed
-      }));
-
-      this.loadingStates.groups = false;
-    },
-    (error) => {
-      this.loadingStates.groups = false;
-      // Handle error if needed
-      console.error('Error loading groups:', error);
-    }
-  );
-}
-// async loadGroulllp() {
-
-//   const cityValue = this.visitForm.get('visitDetails.city')?.value;
-//   const params: any = cityValue ? { cityId: cityValue } : {};
-
-//   this.loadingAreas.set(true);
-//   this.areaService.getAreas(params).subscribe(
-//     (response: AreasResponseDTO) => {
-//       this.areas.set(
-//         response.data.map(area => ({
-//           label: this.translateService.currentLang === 'ar' ? area.nameAr : area.name,
-//           value: area.id
-//         }))
-//       )
-
-//       this.loadingAreas.set(false);
-//     }
-//   );
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-  private loadAllGroups(): void {
-    this.loadingStates.groups = true;
-    this.groupsError = false;
-    
-    this.groupService.getGroups().pipe(
-      takeUntil(this.destroy$),
-      catchError(error => {
-        console.error('Error loading groups:', error);
-        this.groupsError = true;
-        this.showError('فشل في تحميل المجموعات');
-        return of([]);
-      }),
-      finalize(() => {
-        this.loadingStates.groups = false;
-        this.updateOverallLoadingState();
-      })
-    ).subscribe({
-      next: (response: any) => {
-        // Handle different response formats
-        const groups = Array.isArray(response) ? response : (response?.data || []);
-        this.availableGroups = groups.map((group: any) => ({
-          ...group,
-          groupName: group.groupName || `المجموعة ${group.groupID}`,
-          displayName: this.getGroupDisplayName(group)
-        }));
-        console.log('Groups loaded:', this.availableGroups.length);
-      }
-    });
+  if (!this.selectedStage || !this.selectedGrade) {
+    console.log('Stage or grade not selected');
+    this.availableGroups = []; // Clear groups if no stage/grade
+    return;
   }
 
-  private loadAllTeachers(): void {
+  this.loadingStates.groups = true;
+  this.groupsError = false;
+
+  const params: groupFilterDto = {
+    stageId: Number(this.selectedStage),
+    levelId: Number(this.selectedGrade)
+  };
+
+  try {
+    const response = await this.groupService.getGropsByStageAndStageLevel(params).toPromise();
+    
+    this.availableGroups = Array.isArray(response)
+      ? response.map(groupDto => ({
+          groupID: groupDto.groupId,
+          groupName: groupDto.groupName,
+          description: groupDto.description,
+          teacherId: groupDto.teacherId,
+          scheduleDay: groupDto.scheduleDay || '',
+          maxStudentNumber: groupDto.maxCapacity,
+          stage: groupDto.educationStage.toString(),
+          stageLevel: groupDto.gradeLevel.toString(),
+          createdAt: new Date(groupDto.createdAt),
+          currentStudents: groupDto.memberCount,
+          active: groupDto.status === 'Active',
+          fees: 0
+        }))
+      : [];
+
+    console.log('Filtered groups:', this.availableGroups.length);
+  } catch (error) {
+    console.error('Error loading groups:', error);
+    this.groupsError = true;
+    this.availableGroups = [];
+  } finally {
+    this.loadingStates.groups = false;
+  }
+}
+
+
+  // private loadAllGroups(): void {
+  
+  //   this.loadingStates.groups = true;
+  //   this.groupsError = false;
+    
+  //   this.groupService.getGroups().pipe(
+  //     takeUntil(this.destroy$),
+  //     catchError(error => {
+  //       console.error('Error loading groups:', error);
+  //       this.groupsError = true;
+  //       this.showError('فشل في تحميل المجموعات');
+  //       return of([]);
+  //     }),
+  //     finalize(() => {
+  //       this.loadingStates.groups = false;
+  //       this.updateOverallLoadingState();
+  //     })
+  //   ).subscribe({
+  //     next: (response: any) => {
+  //       // Handle different response formats
+  //       const groups = Array.isArray(response) ? response : (response?.data || []);
+  //       this.availableGroups = groups.map((group: any) => ({
+  //         ...group,
+  //         groupName: group.groupName || `المجموعة ${group.groupID}`,
+  //         displayName: this.getGroupDisplayName(group)
+  //       }));
+  //       console.log('Groups loaded:', this.availableGroups.length);
+  //     }
+  //   });
+  // }
+
+   loadAllTeachers(): void {
     this.loadingStates.teachers = true;
     
     this.teacherService.getAllTeachers().pipe(
@@ -365,6 +313,8 @@ async loadGroup() {
       })
     ).subscribe({
       next: (teachers) => {
+      console.log(teachers ,"Teacher Loading ")
+
         this.availableTeachers = teachers;
         console.log('Teachers loaded:', teachers.length);
       }
@@ -482,7 +432,7 @@ async loadGroup() {
     const teacherId = this.bookingForm.get('teacherId')?.value;
     
     if (teacherId) {
-      this.selectedTeacher = this.availableTeachers.find(t => t.teacherId === +teacherId) || null;
+      this.selectedTeacher = this.availableTeachers.find(t => t.teacherId === teacherId) || null;
     } else {
       this.selectedTeacher = null;
     }
@@ -630,7 +580,7 @@ async loadGroup() {
       teacherId: formValue.teacherId?.toString(),
       date: new Date().toISOString(),
       notes: formValue.notes || '',
-      timeSlot: '09:00',
+      // timeSlot: '09:00',
       teacherd: formValue.teacherId?.toString(), // or the correct teacher id field
       educationStageLevel: formValue.grade,      // or the correct grade/level field
       studentInfo: {

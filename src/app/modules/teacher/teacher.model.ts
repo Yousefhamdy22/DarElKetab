@@ -1,7 +1,7 @@
 import { Group } from "../groups/group.models";
 
 export interface Teacher {
-  teacherId: number;
+  teacherId: string;
   userId: string;
   name: string;
   groupName: string;

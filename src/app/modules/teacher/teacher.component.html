@@ -280,131 +280,121 @@
     </p-table>
   </div>
 
-  <!-- Enhanced Teacher Form Dialog -->
+  <!-- Adding Teacher Form Dialog -->
+
+
+
+
+
   <p-dialog header="{{selectedTeacher ? 'تعديل بيانات المعلم' : 'إضافة معلم جديد'}}" [(visible)]="isDialogVisible"
-    [modal]="true" [style]="{width: '800px'}" [draggable]="false" [resizable]="false"
-    [breakpoints]="{'960px': '80vw', '640px': '95vw'}" styleClass="shadow-2xl">
-    <form [formGroup]="teacherForm" class="p-2">
-      <div class="space-y-8">
-        <!-- Personal Information -->
-        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-xl border border-emerald-200">
-          <h4 class="font-bold text-xl text-emerald-800 mb-6 flex items-center">
-            <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center ml-3">
-              <i class="pi pi-user text-white"></i>
-            </div>
-            المعلومات الشخصية
-          </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-700">الاسم الكامل *</label>
-              <input pInputText formControlName="name"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                [ngClass]="{'border-red-500': teacherForm.get('name')?.invalid && teacherForm.get('name')?.touched}"
-                placeholder="أدخل الاسم الكامل">
-              <small *ngIf="teacherForm.get('name')?.invalid && teacherForm.get('name')?.touched"
-                class="text-red-500 text-xs flex items-center mt-1">
-                <i class="pi pi-exclamation-triangle ml-1"></i> الاسم الكامل مطلوب
-              </small>
-            </div>
-
-            <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-700">رقم الهاتف *</label>
-              <input pInputText formControlName="phone"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                [ngClass]="{'border-red-500': teacherForm.get('phone')?.invalid && teacherForm.get('phone')?.touched}"
-                placeholder="05XXXXXXXX">
-              <small *ngIf="teacherForm.get('phone')?.invalid && teacherForm.get('phone')?.touched"
-                class="text-red-500 text-xs flex items-center mt-1">
-                <i class="pi pi-exclamation-triangle ml-1"></i> رقم الهاتف مطلوب
-              </small>
-            </div>
-
-            <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-700">البريد الإلكتروني *</label>
-              <input pInputText formControlName="email" type="email"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                [ngClass]="{'border-red-500': teacherForm.get('email')?.invalid && teacherForm.get('email')?.touched}"
-                placeholder="example@example.com">
-              <small *ngIf="teacherForm.get('email')?.invalid && teacherForm.get('email')?.touched"
-                class="text-red-500 text-xs flex items-center mt-1">
-                <i class="pi pi-exclamation-triangle ml-1"></i> بريد إلكتروني صحيح مطلوب
-              </small>
-            </div>
-
-            <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-700">تاريخ الانضمام *</label>
-              <p-calendar formControlName="joinDate" dateFormat="yy/mm/dd" [showIcon]="true" [readonlyInput]="true"
-                class="w-full"
-                inputStyleClass="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
-              </p-calendar>
-            </div>
+  [modal]="true" [style]="{width: '800px'}" [draggable]="false" [resizable]="false"
+  [breakpoints]="{'960px': '80vw', '640px': '95vw'}" styleClass="shadow-2xl">
+  <form [formGroup]="teacherForm" class="p-2">
+    <div class="space-y-8">
+      <!-- Personal Information -->
+      <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-xl border border-emerald-200">
+        <h4 class="font-bold text-xl text-emerald-800 mb-6 flex items-center">
+          <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center ml-3">
+            <i class="pi pi-user text-white"></i>
           </div>
-        </div>
+          المعلومات الشخصية
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-gray-700">الاسم الكامل *</label>
+            <input pInputText formControlName="name"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
+              [ngClass]="{'border-red-500': teacherForm.get('name')?.invalid && teacherForm.get('name')?.touched}"
+              placeholder="أدخل الاسم الكامل">
+            <small *ngIf="teacherForm.get('name')?.invalid && teacherForm.get('name')?.touched"
+              class="text-red-500 text-xs flex items-center mt-1">
+              <i class="pi pi-exclamation-triangle ml-1"></i> الاسم الكامل مطلوب
+            </small>
+          </div>
 
-        <!-- Professional Information -->
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
-          <h4 class="font-bold text-xl text-blue-800 mb-6 flex items-center">
-            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center ml-3">
-              <i class="pi pi-briefcase text-white"></i>
-            </div>
-            المعلومات المهنية
-          </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-700">المؤهل العلمي *</label>
-              <input pInputText formControlName="qualification"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                [ngClass]="{'border-red-500': teacherForm.get('qualification')?.invalid && teacherForm.get('qualification')?.touched}"
-                placeholder="مثال: بكالوريوس في الدراسات الإسلامية">
-              <small *ngIf="teacherForm.get('qualification')?.invalid && teacherForm.get('qualification')?.touched"
-                class="text-red-500 text-xs flex items-center mt-1">
-                <i class="pi pi-exclamation-triangle ml-1"></i> المؤهل العلمي مطلوب
-              </small>
-            </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-gray-700">رقم الهاتف *</label>
+            <input pInputText formControlName="phoneNunber"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
+              [ngClass]="{'border-red-500': teacherForm.get('phoneNunber')?.invalid && teacherForm.get('phoneNunber')?.touched}"
+              placeholder="01XXXXXXXXX">
+            <small *ngIf="teacherForm.get('phoneNunber')?.invalid && teacherForm.get('phoneNunber')?.touched"
+              class="text-red-500 text-xs flex items-center mt-1">
+              <i class="pi pi-exclamation-triangle ml-1"></i> رقم الهاتف مطلوب ويجب أن يبدأ بـ 01 ويتكون من 11 أرقام
+            </small>
+          </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-700">التخصص *</label>
-              <p-dropdown formControlName="specialization" [options]="specializationOptions" placeholder="اختر التخصص"
-                class="w-full" [style]="{'width': '100%'}" panelStyleClass="text-right">
-              </p-dropdown>
-              <small *ngIf="teacherForm.get('specialization')?.invalid && teacherForm.get('specialization')?.touched"
-                class="text-red-500 text-xs flex items-center mt-1">
-                <i class="pi pi-exclamation-triangle ml-1"></i> التخصص مطلوب
-              </small>
-            </div>
-
-            <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-700">سنوات الخبرة</label>
-              <input pInputText formControlName="experience" type="number"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                placeholder="عدد سنوات الخبرة">
-            </div>
-
-            <div class="flex items-center space-x-2 space-x-reverse mt-6">
-              <p-checkbox [binary]="true" formControlName="isActive" inputId="isActive"
-                [style]="{'width': '20px', 'height': '20px'}">
-              </p-checkbox>
-              <label for="isActive" class="text-gray-700 font-medium cursor-pointer">
-                الحساب نشط ومفعل
-              </label>
-            </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-gray-700">تاريخ الانضمام *</label>
+            <p-calendar formControlName="joinDa" dateFormat="yy/mm/dd" [showIcon]="true" [readonlyInput]="true"
+              class="w-full"
+              inputStyleClass="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+            </p-calendar>
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
-        <button pButton label="إلغاء" icon="pi pi-times"
-          class="p-button-outlined p-button-lg border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 px-6"
-          (click)="isDialogVisible = false">
-        </button>
-        <button pButton [label]="selectedTeacher ? 'تحديث البيانات' : 'حفظ المعلم'" icon="pi pi-check"
-          class="p-button-raised p-button-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0 px-8"
-          (click)="saveTeacher()" [disabled]="teacherForm.invalid">
-        </button>
+      <!-- Professional Information -->
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+        <h4 class="font-bold text-xl text-blue-800 mb-6 flex items-center">
+          <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center ml-3">
+            <i class="pi pi-briefcase text-white"></i>
+          </div>
+          المعلومات المهنية
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-gray-700">المؤهل العلمي *</label>
+            <input pInputText formControlName="eduQulaified"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              [ngClass]="{'border-red-500': teacherForm.get('eduQulaified')?.invalid && teacherForm.get('eduQulaified')?.touched}"
+              placeholder="مثال: بكالوريوس في الدراسات الإسلامية">
+            <small *ngIf="teacherForm.get('eduQulaified')?.invalid && teacherForm.get('eduQulaified')?.touched"
+              class="text-red-500 text-xs flex items-center mt-1">
+              <i class="pi pi-exclamation-triangle ml-1"></i> المؤهل العلمي مطلوب
+            </small>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-gray-700">التخصص *</label>
+            <p-dropdown formControlName="specialization" [options]="specializationOptions" placeholder="اختر التخصص"
+              class="w-full" [style]="{'width': '100%'}" panelStyleClass="text-right">
+            </p-dropdown>
+            <small *ngIf="teacherForm.get('specialization')?.invalid && teacherForm.get('specialization')?.touched"
+              class="text-red-500 text-xs flex items-center mt-1">
+              <i class="pi pi-exclamation-triangle ml-1"></i> التخصص مطلوب
+            </small>
+          </div>
+
+          <div class="flex items-center space-x-2 space-x-reverse mt-6">
+            <p-checkbox [binary]="true" formControlName="status" inputId="status"
+              [style]="{'width': '20px', 'height': '20px'}" [trueValue]="'Active'" [falseValue]="'Inactive'">
+            </p-checkbox>
+            <label for="status" class="text-gray-700 font-medium cursor-pointer">
+              الحساب نشط ومفعل
+            </label>
+          </div>
+        </div>
       </div>
-    </form>
-  </p-dialog>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+      <button pButton label="إلغاء" icon="pi pi-times"
+        class="p-button-outlined p-button-lg border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 px-6"
+        (click)="isDialogVisible = false">
+      </button>
+      <button pButton [label]="selectedTeacher ? 'تحديث البيانات' : 'حفظ المعلم'" icon="pi pi-check"
+        class="p-button-raised p-button-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0 px-8"
+        (click)="saveTeacher()" [disabled]="teacherForm.invalid">
+      </button>
+    </div>
+  </form>
+</p-dialog>
+
+
+
+
 
   <!-- More Actions Menu -->
   <p-menu #moreActionsMenu [model]="moreActionsItems" [popup]="true"></p-menu>
