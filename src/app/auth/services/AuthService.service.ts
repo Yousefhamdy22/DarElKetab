@@ -76,16 +76,7 @@ export class AuthService {
     );
   }
 
-  // login(credentials: any): Observable<any> {
-  //   return this.http.post(`${environment.apiUrl}/Account/login`, credentials).pipe(
-  //     tap((response: any) => {
-  //       // Store the received token
-  //       if (response.token) {
-  //         localStorage.setItem('authToken', response.token);
-  //       }
-  //     })
-  //   );
-  // }
+
   
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiBaseUrl}/auth/login`, {
