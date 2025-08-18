@@ -31,26 +31,26 @@ export class AuthGuard implements CanActivate, CanActivateChild {
   private checkAuth(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     if (this.authService.isLoggedIn()) {
       // Check if route requires specific role
-      const expectedRoles = route.data['roles'] as Array<string>;
+    //  const expectedRoles = route.data['roles'] as Array<string>;
       
-      if (expectedRoles) {
-        const userRole = this.authService.getCurrentUser()?.role;
-        if (userRole && expectedRoles.includes(userRole)) {
-          return true;
-        } else {
-          // User doesn't have required role
-          this.router.navigate(['/unauthorized']);
-          return false;
-        }
-      }
+      // if (expectedRoles) {
+      //   const userRole = this.authService.getCurrentUser()?.role;
+      //   if (userRole && expectedRoles.includes(userRole)) {
+      //     return true;
+      //   } else {
+      //     // User doesn't have required role
+      //     this.router.navigate(['/unauthorized']);
+      //     return false;
+      //   }
+      // }
       
       return true;
     }
 
     // Not logged in, redirect to login page with the return URL
-    this.router.navigate(['/login'], { 
-      queryParams: { returnUrl: state.url } 
-    });
+    // this.router.navigate(['/login'], { 
+    //   queryParams: { returnUrl: state.url } 
+    // });
     return false;
   }
 }
@@ -80,7 +80,7 @@ export class RoleGuard implements CanActivate {
     }
 
     // User doesn't have required role
-    this.router.navigate(['/unauthorized']);
+   // this.router.navigate(['/unauthorized']);
     return false;
   }
 }
