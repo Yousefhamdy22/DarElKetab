@@ -9,6 +9,7 @@ import { GroupService } from '../../groups/group.service';
 import { TeacherService } from '../../teacher/teacher.service';
 import { Student } from '../../students/student.model';
 import { AuthService } from '../../../auth/services/AuthService.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 
@@ -57,6 +58,7 @@ export class DailyAttendanceComponent implements OnInit {
     private attendanceService: AttendanceService,
     private groupService: GroupService,
     private authService: AuthService, 
+    private router: Router ,
     private teacherService: TeacherService,
     private messageService: MessageService
   ) { }
@@ -241,31 +243,6 @@ export class DailyAttendanceComponent implements OnInit {
     return hash;
   }
 
-  // Helper method to process different API response formats
-  // private processStudentResponse(response: any): any[] {
-  //   console.log('Processing student response:', response);
-    
-  //   // Try different possible response structures
-  //   if (response?.data?.students) {
-  //     return response.data.students;
-  //   }
-    
-  //   if (response?.students) {
-  //     return response.students;
-  //   }
-    
-  //   if (response?.data && Array.isArray(response.data)) {
-  //     return response.data;
-  //   }
-    
-  //   if (Array.isArray(response)) {
-  //     return response;
-  //   }
-    
-  //   return [];
-  // }
-
-
 
   // Enhanced error handling
   private handleError(message: string, error: any): void {
@@ -443,57 +420,6 @@ export class DailyAttendanceComponent implements OnInit {
     });
   }
 
- 
-  // saveAttendance(): void {
-  //   this.formSubmitted = true;
-    
-  //   if (!this.selectedGroup || this.filteredStudents.length === 0) {
-  //     this.messageService.add({
-  //       severity: 'warn',
-  //       summary: 'تنبيه',
-  //       detail: 'الرجاء اختيار مجموعة وتحديد حالة الحضور للطلاب'
-  //     });
-  //     return;
-  //   }
-    
-  //   this.submitting = true;
-    
-  //   const attendanceData: Attendance[] = this.filteredStudents.map(student => ({
-  //     date: this.selectedDate,
-  //     status: student.status || 'present',
-  //     notes: student.notes || '',
-  //     studentName : student.name,
-  //     studentID: student.studentID,
-  //     groupId: this.selectedGroup!,
-  //     AttendanceStatus: []
-  //   }));
-    
-  //   console.log('Saving attendance data:', attendanceData , this.selectedDate);
-    
-  //   const command = this.mapToCommand(attendanceData, this.selectedDate, 1); // Add sessionId as needed
-  //   this.attendanceService.saveGroupAttendance(command).subscribe({
-  //     next: (response: any) => {
-  //       this.messageService.add({
-  //         severity: 'success',
-  //         summary: 'تم التسجيل',
-  //         detail: `تم تسجيل حضور ${this.filteredStudents.length} طالب بنجاح`
-  //       });
-  //       this.attendanceRecorded = true;
-  //       localStorage.removeItem('attendanceDraft');
-  //       this.submitting = false;
-  //     },
-  //     error: (err) => {
-  //       this.messageService.add({
-  //         severity: 'error',
-  //         summary: 'خطأ',
-  //         detail: 'فشل في حفظ سجل الحضور. يرجى المحاولة مرة أخرى'
-  //       });
-  //       console.error('Error saving attendance:', err);
-  //       this.submitting = false;
-  //     }
-  //   });
-  // }
-//-------------------------
 
   saveAttendance(): void {
     this.formSubmitted = true;
@@ -507,32 +433,27 @@ export class DailyAttendanceComponent implements OnInit {
       });
       return;
     }
-
-    // Validate all students have required data
-    const invalidStudents = this.filteredStudents.filter(
-      student => !student.studentID || !student.name
-    );
-    
-    // if (invalidStudents.length > 0) {
-    //   this.messageService.add({
-    //     severity: 'error',
-    //     summary: 'خطأ',
-    //     detail: 'بعض سجلات الطلاب تفتقد بيانات أساسية (رقم الطالب أو الاسم)'
-    //   });
-    //   return;
-    // }
+  
+    // Check if user is authenticated
+    if (!this.authService.getToken()) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'خطأ في المصادقة',
+        detail: 'انتهت جلستك، يرجى تسجيل الدخول مرة أخرى'
+      });
+      this.router.navigate(['/login']);
+      return;
+    }
     
     this.submitting = true;
     
     // Prepare attendance data
     const attendanceData = this.filteredStudents.map(student => ({
       studentId: student.studentID,
-      // studentName: student.name,
-      // studentCode: student.studentCode || '',
       attendanceStatus: student.status || 'Present',
       notes: student.notes || '',
       groupId: this.selectedGroup!,
-      recentAttendance: [] // Add recent attendance if available
+      recentAttendance: []
     }));
     
     console.log('Saving attendance data:', attendanceData, this.selectedDate);
@@ -540,12 +461,12 @@ export class DailyAttendanceComponent implements OnInit {
     // Create command object
     const command = {
       groupId: this.selectedGroup,
-      // sessionId: 1, // You should get this from your component state
       date: this.selectedDate.toISOString(),
-      markedBy: this.authService.getUserId(), // Make sure to inject AuthService
+      markedBy: this.authService.getUserId(),
       records: attendanceData
-      
     };
+  
+    console.log('Sending command:', command);
     
     this.attendanceService.saveGroupAttendance(command).subscribe({
       next: (response: any) => {
@@ -559,12 +480,29 @@ export class DailyAttendanceComponent implements OnInit {
         this.submitting = false;
       },
       error: (err) => {
+        console.error('Full error object:', err);
+        
         let errorDetail = 'فشل في حفظ سجل الحضور. يرجى المحاولة مرة أخرى';
         
-        // Handle validation errors specifically
         if (err.status === 400 && err.error?.errors) {
-          const firstError = Object.values(err.error.errors)[0];
-          // errorDetail = firstError[0] || errorDetail;
+          const firstError = Object.values(err.error.errors)[0] as string[];
+          errorDetail = firstError?.[0] || errorDetail;
+        }
+        else if (err.status === 401 || err.status === 403) {
+          errorDetail = 'انتهت جلستك، يرجى تسجيل الدخول مرة أخرى';
+          this.router.navigate(['/login']);
+        }
+        else if (err.status === 404) {
+          // Check if this is a redirect to login
+          if (err.url?.includes('/Account/Login')) {
+            errorDetail = 'انتهت جلستك، يرجى تسجيل الدخول مرة أخرى';
+            this.router.navigate(['/login']);
+          } else {
+            errorDetail = 'الرابط غير صحيح أو غير موجود';
+          }
+        }
+        else if (err.status === 0) {
+          errorDetail = 'فشل في الاتصال بالخادم. تحقق من اتصال الإنترنت';
         }
         
         this.messageService.add({
@@ -572,11 +510,14 @@ export class DailyAttendanceComponent implements OnInit {
           summary: 'خطأ',
           detail: errorDetail
         });
-        console.error('Error saving attendance:', err);
+        
         this.submitting = false;
       }
     });
   }
+
+
+  
  // Helper method to get selected group name
  getSelectedGroupName(): string {
   if (!this.selectedGroup) return '';

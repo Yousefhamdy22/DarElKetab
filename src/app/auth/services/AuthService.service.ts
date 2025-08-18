@@ -75,6 +75,17 @@ export class AuthService {
       })
     );
   }
+
+  // login(credentials: any): Observable<any> {
+  //   return this.http.post(`${environment.apiUrl}/Account/login`, credentials).pipe(
+  //     tap((response: any) => {
+  //       // Store the received token
+  //       if (response.token) {
+  //         localStorage.setItem('authToken', response.token);
+  //       }
+  //     })
+  //   );
+  // }
   
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiBaseUrl}/auth/login`, {
@@ -116,17 +127,7 @@ export class AuthService {
     const user = this.currentUserSubject.value;
     return user?.role || null;
   }
-  // getUserId(): string | null {
-  //   const token = localStorage.getItem('token');
-  //   if (!token) return null;
-    
-  //   try {
-  //     const payload = JSON.parse(atob(token.split('.')[1]));
-  //     return payload.nameid; // or payload.userId depending on your claim
-  //   } catch (e) {
-  //     return null;
-  //   }
-  // }
+
   private setAuthData(response: LoginResponse): void {
     // Store token
     localStorage.setItem(this.tokenKey, response.token);

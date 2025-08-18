@@ -1,6 +1,6 @@
 // services/attendance.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient , HttpErrorResponse } from '@angular/common/http';
+import { HttpClient ,HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable , catchError, throwError} from 'rxjs';
 import { 
   
@@ -9,12 +9,14 @@ import {
   Attendance ,
   GroupAttendanceResponse
 } from  '../attendance/models';
+
 import { Group } from '../groups/group.models';
 import { Teacher } from '../teacher/teacher.model';
 import { Student } from '../students/student.model';
-import { Data } from '@angular/router';
+
 import { environment } from '../../../../environment/environment';
 import { AuthService } from '../../auth/services/AuthService.service';
+import { Route, Router } from '@angular/router';
 
 
 
@@ -26,7 +28,8 @@ export class AttendanceService {
 
 
   constructor(private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
              
 
   ) { }
@@ -49,14 +52,42 @@ export class AttendanceService {
   }
  
 
+  saveGroupAttendance(command: any): Observable<GroupAttendanceResponse> {
+    const url = `${environment.apiUrl}/Attendance/record-group`;
+    
+    // Let the interceptor handle the auth header
+    return this.http.post<GroupAttendanceResponse>(url, command).pipe(
+      catchError(error => {
+        if (error.status === 401 || error.status === 403) {
+          // Trigger token refresh or logout
+          this.authService.logout();
+          this.router.navigate(['/login']);
+        }
+        return throwError(() => error);
+      })
+    );
+  }
+  // saveGroupAttendance(command: any): Observable<GroupAttendanceResponse> {
+  //   const url = `${environment.apiUrl}/Attendance/record-group`;
+  //   const headers = new HttpHeaders({
+  //     'Authorization': `Bearer ${this.getAuthToken()}`
+  //   });
+    
+  //   return this.http.post<GroupAttendanceResponse>(url, command, { headers });
+  // }
 
-saveGroupAttendance(
-  command: any
-): Observable<GroupAttendanceResponse> {
-  const url = `${environment.apiUrl}/Attendance/record-group`;
+  private getAuthToken(): string {
+    // Get token from where you store it (localStorage, cookie, etc.)
+    return localStorage.getItem('authToken') || '';
+  }
+
+// saveGroupAttendance(
+//   command: any
+// ): Observable<GroupAttendanceResponse> {
+//   const url = `${environment.apiUrl}/Attendance/record-group`;
   
-  return this.http.post<GroupAttendanceResponse>(url, command);
-}
+//   return this.http.post<GroupAttendanceResponse>(url, command);
+// }
 
 
 // saveGroupAttendance(data: any[], date: Date, sessionId: number): Observable<any> {

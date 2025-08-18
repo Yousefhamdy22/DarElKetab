@@ -62,7 +62,7 @@ export class StudentViewComponent implements OnInit {
   academicStats = {
     average: 88,
     highest: 95,
-    highestSubject: 'القرآن الكريم',
+    highestSubject: 'الاكاديمي',
     totalExams: 5
   };
   
@@ -70,7 +70,7 @@ export class StudentViewComponent implements OnInit {
   chartOptions: any;
   
   exams = [
-    { subject: 'القرآن الكريم', type: 'حفظ', date: new Date(), grade: 95 },
+    { subject: 'الاكاديمي', type: 'حفظ', date: new Date(), grade: 95 },
     { subject: 'التجويد', type: 'نظري', date: new Date(), grade: 88 },
     // ... more exams
   ];
