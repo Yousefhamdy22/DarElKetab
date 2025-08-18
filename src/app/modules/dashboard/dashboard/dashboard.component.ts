@@ -226,14 +226,14 @@ onLogout() {
 
   // Dashboard data
   stats = {
-    totalStudents: 142,
-    activeStudents: 127,
-    totalTeachers: 12,
-    activeTeachers: 12,
-    totalGroups: 8,
-    pendingRegistrations: 5,
-    monthlyRevenue: 45250,
-    attendanceRate: 87
+    totalStudents: 0,
+    activeStudents: 0,
+    totalTeachers: 0,
+    activeTeachers: 0,
+    totalGroups: 0,
+    pendingRegistrations: 0,
+    monthlyRevenue:0,
+    attendanceRate: 0
   };
 
   // Pending actions that need admin attention
