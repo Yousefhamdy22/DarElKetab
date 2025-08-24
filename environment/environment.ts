@@ -1,8 +1,10 @@
 
 export const environment = {
     production: false,
-    apiUrl: 'http://localhost:5079/api',
-
+    apiUrl: 'https://yousefhamdy-001-site1.jtempurl.com/api',
+    
+  //  'http://localhost:5079/api',
+  
 
 
 }  

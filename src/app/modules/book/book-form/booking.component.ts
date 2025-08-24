@@ -616,7 +616,7 @@ async loadGroup() {
   }
 
   navigateToBookingCard(): void {
-    this.router.navigate(['/booking-card']);
+    this.router.navigate(['/bookingcard']);
   }
 
   private markAllFieldsAsTouched(): void {

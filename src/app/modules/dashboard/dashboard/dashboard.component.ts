@@ -167,19 +167,6 @@ onLogout() {
     rtl: true
   };
 
-  // stats = {
-  //   totalStudents: 142,
-  //   activeStudents: 127,
-  //   attendanceRate: 87,
-  //   totalGroups: 12
-  // };
-
-  // absentStudents = [
-  //   { name: 'سعد العمري', group: 'المبتدئين', absences: 3 },
-  //   { name: 'خالد الأحمد', group: 'الحفظ المتقدم', absences: 1 }
-  // ];
-
-  // subscriptions: Subscription[] = [];
 
   constructor(private sidebarService: SidebarService
   , private authServcie: AuthService
@@ -194,19 +181,7 @@ onLogout() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  // private subscribeToSidebar() {
-  //   this.subscriptions.push(
-  //     this.sidebarService.isCollapsed$.subscribe(collapsed => {
-  //       this.isCollapsed = collapsed;
-  //     }),
-  //     this.sidebarService.isMobile$.subscribe(mobile => {
-  //       this.isMobile = mobile;
-  //     }),
-  //     this.sidebarService.sidebarOpen$.subscribe(open => {
-  //       this.sidebarOpen = open;
-  //     })
-  //   );
-  // }
+  
 
   toggleSidebar() {
     this.sidebarService.toggleSidebar();
@@ -277,17 +252,6 @@ onLogout() {
       })
     );
   }
-
-  // toggleSidebar() {
-  //   this.sidebarService.toggleSidebar();
-  // }
-
-  // getMainContentClass(): string {
-  //   if (this.isMobile) {
-  //     return 'main-content-mobile';
-  //   }
-  //   return this.isCollapsed ? 'main-content-collapsed' : 'main-content-expanded';
-  // }
 
   handlePendingAction(action: any) {
     // Navigate to specific management page
