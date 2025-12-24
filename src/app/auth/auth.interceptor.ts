@@ -185,10 +185,10 @@ export class AuthInterceptor implements HttpInterceptor {
     // this.authService.clearTokens();
     
     // Navigate to login
-    this.router.navigate(['/login'], { 
-      queryParams: { returnUrl: this.router.url },
-      replaceUrl: true 
-    });
+    // this.router.navigate(['/login'], { 
+    //   queryParams: { returnUrl: this.router.url },
+    //   replaceUrl: true 
+    // });
   }
 
   private addUserContextToRequest(request: HttpRequest<any>): HttpRequest<any> {
